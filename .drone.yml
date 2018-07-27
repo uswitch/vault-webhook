@@ -1,0 +1,35 @@
+workspace:
+  base: /go
+  path: src/github.com/uswitch/vault-webhook
+
+pipeline:
+  build:
+    image: golang:1.10
+    commands:
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/vault-webhook
+
+  docker-branch:
+    image: plugins/docker
+    repo: registry.usw.co/drone/vault-webhook
+    tags:
+      - ${DRONE_COMMIT_SHA}
+      - ${DRONE_COMMIT_BRANCH}
+    when:
+      event: push
+
+  docker-latest:
+    image: plugins/docker
+    repo: registry.usw.co/drone/vault-webhook
+    tags:
+      - latest
+    when:
+      event: push
+      branch: master
+
+  docker-tagged:
+    image: plugins/docker
+    repo: registry.usw.co/drone/vault-webhook
+    tags:
+      - ${DRONE_TAG}
+    when:
+      event: tag
