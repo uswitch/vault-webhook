@@ -112,12 +112,12 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
-	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
-		req.Kind, req.Namespace, req.Name, pod.Name, req.UID, req.Operation, req.UserInfo)
+	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
+		pod.ObjectMeta.OwnerReferences[0].Kind, req.Namespace, pod.ObjectMeta.OwnerReferences[0].Name, req.UID, req.Operation, req.UserInfo)
 
 	// determine whether to perform mutation
 	if !mutationRequired(&pod.ObjectMeta) {
-		glog.Infof("Skipping mutation for %s/%s due to policy check", pod.Namespace, pod.Name)
+		glog.Infof("Skipping mutation for %s/%s due to policy check", req.Namespace, pod.ObjectMeta.OwnerReferences[0].Name)
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
 		}
@@ -128,6 +128,13 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
 				Message: err.Error(),
+			},
+		}
+	}
+	if serviceAccountToken == "" {
+		return &v1beta1.AdmissionResponse{
+			Result: &metav1.Status{
+				Message: fmt.Errorf("no service account token was found for service account: %s", pod.Spec.ServiceAccountName).Error(),
 			},
 		}
 	}
@@ -160,7 +167,9 @@ func mutationRequired(meta *metav1.ObjectMeta) bool {
 }
 
 func createPatch(pod *corev1.Pod, namespace, serviceAccountToken string) ([]byte, error) {
-	patch := addVault(pod, namespace, serviceAccountToken)
+	patch := []patchOperation{}
+	patch = append(patch, addVolume(pod)...)
+	patch = append(patch, addVault(pod, namespace, serviceAccountToken)...)
 	return json.Marshal(patch)
 }
 
@@ -267,6 +276,34 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string) (patch []p
 		Op:    "add",
 		Path:  initPath,
 		Value: init,
+	})
+
+	return patch
+}
+
+func addVolume(pod *corev1.Pod) (patch []patchOperation) {
+
+	volume := corev1.Volume{
+		Name: "vault-creds",
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		},
+	}
+
+	path := "/spec/volumes"
+	var value interface{}
+
+	if len(pod.Spec.Volumes) != 0 {
+		path = path + "/-"
+		value = volume
+	} else {
+		value = []corev1.Volume{volume}
+	}
+
+	patch = append(patch, patchOperation{
+		Op:    "add",
+		Path:  path,
+		Value: value,
 	})
 
 	return patch
