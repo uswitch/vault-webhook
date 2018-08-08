@@ -21,9 +21,7 @@ type bindingAggregator struct {
 func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 	binder := &bindingAggregator{}
 	watcher := cache.NewListWatchFromClient(client.VaultwebhookV1alpha1().RESTClient(), "databasecredentialbindings", "", fields.Everything())
-	store, controller := cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
-	binder.controller = controller
-	binder.store = store
+	binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
 	return binder
 }
 
