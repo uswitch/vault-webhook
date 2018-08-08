@@ -3,17 +3,16 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"flag"
 	"fmt"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/golang/glog"
+	log "github.com/sirupsen/logrus"
+	webhook "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/kubernetes/staging/src/k8s.io/sample-controller/pkg/signals"
 )
 
 var cluster string
@@ -22,49 +21,66 @@ func main() {
 
 	kingpin.Flag("cluster", "Name of cluster").Required().StringVar(&cluster)
 	kingpin.Parse()
+	log.SetOutput(os.Stderr)
 
 	pair, err := tls.LoadX509KeyPair("/etc/webhook/certs/cert.pem", "/etc/webhook/certs/key.pem")
 	if err != nil {
-		glog.Errorf("Filed to load key pair: %v", err)
+		log.Errorf("Failed to load key pair: %v", err)
 	}
 
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		glog.Fatalf("error creating kube client config: %s", err)
+		log.Fatalf("error creating kube client config: %s", err)
 	}
 
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		glog.Fatalf("error creating kube client: %s", err)
+		log.Fatalf("error creating kube client: %s", err)
 	}
+
+	webhookClient, err := webhook.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("error creating webhook client: %s", err)
+	}
+
+	watcher := NewListWatch(webhookClient)
 
 	whsvr := webHookServer{
 		server: &http.Server{
 			Addr:      fmt.Sprintf(":443"),
 			TLSConfig: &tls.Config{Certificates: []tls.Certificate{pair}},
 		},
-		client: client,
+		client:   client,
+		bindings: watcher,
 	}
 
-	flag.Set("logtostderr", "true")
+	stopCh := signals.SetupSignalHandler()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	watcher.Run(ctx)
+
+	log.Info("Waiting for informer caches to sync")
+	if ok := watcher.controller.HasSynced(); !ok {
+		log.Fatal("failed to wait for caches to sync")
+	}
 
 	// define http server and server handler
 	mux := http.NewServeMux()
 	mux.HandleFunc("/mutate", whsvr.serve)
 	whsvr.server.Handler = mux
+	log.Info("starting server")
 
 	// start webhook server in new rountine
 	go func() {
 		if err := whsvr.server.ListenAndServeTLS("", ""); err != nil {
-			glog.Errorf("Filed to listen and serve webhook server: %v", err)
+			log.Errorf("Failed to listen and serve webhook server: %v", err)
 		}
 	}()
 
 	// listening OS shutdown singal
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-	<-signalChan
+	<-stopCh
 
-	glog.Infof("Got OS shutdown signal, shutting down webook server gracefully...")
+	log.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
 	whsvr.server.Shutdown(context.Background())
 }
