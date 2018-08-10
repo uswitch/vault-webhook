@@ -23,7 +23,7 @@ spec:
   role: readonly
 ```
 
-The webhook expects there to be a volume called `vault-template` already there, this volume should be a configmap and the configmap should contain a file called `database-role.tmpl` e.g `test-readonly.tmpl` which will be used for templating your credentials. It will output the credentials to a file called `database-role` in the `vault-creds` volume.
+The webhook expects there to be a volume called `vault-template` already there, this volume should be a configmap and the configmap should contain a file called `database-role` e.g `mydb-readonly` which will be used for templating your credentials. It will output the credentials to a file called `database-role` in the `vault-creds` volume.
 
 Example Deployment:
 
@@ -43,7 +43,7 @@ spec:
       containers:
       - name: myapp
         args:
-        - --db-creds=/creds/my-db-readonly
+        - --db-creds=/creds/mydb-readonly
         volumeMounts:
           name: vault-creds
           mountPath: /creds
