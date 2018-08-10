@@ -41,7 +41,7 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 		}
 
 		vaultContainer := corev1.Container{
-			Image:           "registry.usw.co/cloud/vault-creds",
+			Image:           sidecarImage,
 			ImagePullPolicy: "Always",
 			Resources: corev1.ResourceRequirements{
 				Requests: requests,

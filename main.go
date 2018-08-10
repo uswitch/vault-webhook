@@ -16,14 +16,16 @@ import (
 )
 
 var (
-	vaultAddr string
-	loginPath string
+	vaultAddr    string
+	loginPath    string
+	sidecarImage string
 )
 
 func main() {
 
 	kingpin.Flag("vault-address", "URL of vault").Required().StringVar(&vaultAddr)
 	kingpin.Flag("login-path", "Kubernetes auth login path for vault").Required().StringVar(&loginPath)
+	kingpin.Flag("sidecar-image", "Vault-creds sidecar image to use").Required().StringVar(&sidecarImage)
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
 
