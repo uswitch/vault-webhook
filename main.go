@@ -15,11 +15,15 @@ import (
 	"k8s.io/kubernetes/staging/src/k8s.io/sample-controller/pkg/signals"
 )
 
-var cluster string
+var (
+	vaultAddr string
+	loginPath string
+)
 
 func main() {
 
-	kingpin.Flag("cluster", "Name of cluster").Required().StringVar(&cluster)
+	kingpin.Flag("vault-address", "URL of vault").Required().StringVar(&vaultAddr)
+	kingpin.Flag("login-path", "Kubernetes auth login path for vault").Required().StringVar(&loginPath)
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
 
