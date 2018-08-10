@@ -1,5 +1,5 @@
 # Vault-webhook
-Mutating webhook that injects the Vault-Creds sidecar into pods on pod creation using a custom resource for configuration.
+Mutating webhook that injects the [Vault-Creds sidecar](https://github.com/uswitch/vault-creds) into pods on pod creation using a custom resource for configuration.
 
 ## Usage
 The webhook will do three things:
