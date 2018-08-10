@@ -30,9 +30,6 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 		templatePath := fmt.Sprintf("/creds/template/%s-%s", database, role)
 		outputPath := fmt.Sprintf("/creds/output/%s-%s", database, role)
 
-		vaultAddr := fmt.Sprintf("https://vault.%s.kube.usw.co", cluster)
-		loginPath := fmt.Sprintf("kubernetes/%s/login", cluster)
-
 		requests := corev1.ResourceList{
 			"cpu":    resource.MustParse("10m"),
 			"memory": resource.MustParse("20Mi"),
@@ -44,7 +41,7 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 		}
 
 		vaultContainer := corev1.Container{
-			Image:           "registry.usw.co/cloud/vault-creds",
+			Image:           sidecarImage,
 			ImagePullPolicy: "Always",
 			Resources: corev1.ResourceRequirements{
 				Requests: requests,
