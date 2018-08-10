@@ -1,0 +1,23 @@
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: vault-webhook
+  labels:
+    app: vault-webhook
+webhooks:
+  - name: vault-webhook.uswitch.com
+    clientConfig:
+      service:
+        name: vault-webhook
+        namespace: kube-system
+        path: "/mutate"
+      caBundle: ${CA_BUNDLE}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchLabels:
+        vault-webhook: enabled
