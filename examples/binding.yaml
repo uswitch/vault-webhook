@@ -1,0 +1,10 @@
+---
+apiVersion: vaultwebhook.uswitch.com/v1alpha1
+kind: DatabaseCredentialBinding
+metadata:
+  name: testy
+  namespace: cloud
+spec:
+  serviceAccount: test
+  database: test
+  role: readonly
