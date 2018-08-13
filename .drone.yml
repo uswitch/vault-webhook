@@ -10,7 +10,9 @@ pipeline:
 
   docker-branch:
     image: plugins/docker
-    repo: registry.usw.co/drone/vault-webhook
+    repo: quay.io/uswitch/vault-webhook
+    registry: quay.io
+    secrets: [ docker_username, docker_password ]
     tags:
       - ${DRONE_COMMIT_SHA}
       - ${DRONE_COMMIT_BRANCH}
@@ -19,7 +21,9 @@ pipeline:
 
   docker-latest:
     image: plugins/docker
-    repo: registry.usw.co/drone/vault-webhook
+    repo: quay.io/uswitch/vault-webhook
+    registry: quay.io
+    secrets: [ docker_username, docker_password ]
     tags:
       - latest
     when:
@@ -28,7 +32,9 @@ pipeline:
 
   docker-tagged:
     image: plugins/docker
-    repo: registry.usw.co/drone/vault-webhook
+    repo: quay.io/uswitch/vault-webhook
+    registry: quay.io
+    secrets: [ docker_username, docker_password ]
     tags:
       - ${DRONE_TAG}
     when:
