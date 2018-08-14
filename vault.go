@@ -12,6 +12,7 @@ import (
 func createPatch(pod *corev1.Pod, namespace, serviceAccountToken string, databases []database) ([]byte, error) {
 	patch := []patchOperation{}
 	patch = append(patch, addVolume(pod)...)
+	patch = append(patch, addVolumeMount(pod, databases)...)
 	patch = append(patch, addVault(pod, namespace, serviceAccountToken, databases)...)
 	return json.Marshal(patch)
 }
@@ -156,4 +157,44 @@ func addVolume(pod *corev1.Pod) (patch []patchOperation) {
 	})
 
 	return patch
+}
+
+func addVolumeMount(pod *corev1.Pod, databases []database) (patch []patchOperation) {
+	inited := false
+	var value interface{}
+	path := "/spec/containers"
+
+	for _, container := range pod.Spec.Containers {
+		for _, database := range databases {
+			volumeMount := corev1.VolumeMount{
+				Name:      "vault-creds",
+				MountPath: database.outputPath,
+			}
+			//we don't want to mount the same path twice
+			container.VolumeMounts = appendVolumeMountIfMissing(container.VolumeMounts, volumeMount)
+		}
+		if inited == true {
+			path = path + "/-"
+			value = container
+		} else {
+			value = []corev1.Container{container}
+			inited = true
+		}
+		patch = append(patch, patchOperation{
+			Op:    "replace",
+			Path:  path,
+			Value: value,
+		})
+
+	}
+	return patch
+}
+
+func appendVolumeMountIfMissing(slice []corev1.VolumeMount, v corev1.VolumeMount) []corev1.VolumeMount {
+	for _, ele := range slice {
+		if ele == v {
+			return slice
+		}
+	}
+	return append(slice, v)
 }
