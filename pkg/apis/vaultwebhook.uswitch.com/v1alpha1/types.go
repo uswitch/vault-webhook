@@ -17,6 +17,7 @@ type DatabaseCredentialBinding struct {
 type DatabaseCredentialBindingSpec struct {
 	Database       string `json:"database"`
 	Role           string `json:"role"`
+	OutputPath     string `json:"outputPath"`
 	ServiceAccount string `json:"serviceAccount"`
 }
 

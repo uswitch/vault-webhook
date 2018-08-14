@@ -36,8 +36,9 @@ type patchOperation struct {
 }
 
 type database struct {
-	database string
-	role     string
+	database   string
+	role       string
+	outputPath string
 }
 
 func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +195,11 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 	matchedBindings := []database{}
 	for _, binding := range bindings {
 		if binding.Spec.ServiceAccount == serviceAccount {
-			matchedBindings = appendIfMissing(matchedBindings, database{role: binding.Spec.Role, database: binding.Spec.Database})
+			output := binding.Spec.OutputPath
+			if output == "" {
+				output = "/etc/database"
+			}
+			matchedBindings = appendIfMissing(matchedBindings, database{role: binding.Spec.Role, database: binding.Spec.Database, outputPath: output})
 		}
 	}
 	return matchedBindings
