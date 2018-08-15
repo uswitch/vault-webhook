@@ -39,6 +39,7 @@ type database struct {
 	database   string
 	role       string
 	outputPath string
+	outputFile string
 }
 
 func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
@@ -199,7 +200,7 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 			if output == "" {
 				output = "/etc/database"
 			}
-			matchedBindings = appendIfMissing(matchedBindings, database{role: binding.Spec.Role, database: binding.Spec.Database, outputPath: output})
+			matchedBindings = appendIfMissing(matchedBindings, database{role: binding.Spec.Role, database: binding.Spec.Database, outputPath: output, outputFile: binding.Spec.OutputFile})
 		}
 	}
 	return matchedBindings
