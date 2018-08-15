@@ -29,7 +29,13 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 		containerName := fmt.Sprintf("vault-creds-%s-%s", strings.Replace(database, "_", "-", -1), role)
 		secretPath := fmt.Sprintf("database/creds/%s_%s", database, role)
 		templatePath := fmt.Sprintf("/creds/template/%s-%s", database, role)
-		outputPath := fmt.Sprintf("/creds/output/%s-%s", database, role)
+		var outputPath string
+
+		if databaseInfo.outputFile == "" {
+			outputPath = fmt.Sprintf("/creds/output/%s-%s", database, role)
+		} else {
+			outputPath = fmt.Sprintf("/creds/output/%s", databaseInfo.outputFile)
+		}
 
 		requests := corev1.ResourceList{
 			"cpu":    resource.MustParse("10m"),
