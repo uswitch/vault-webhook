@@ -2,8 +2,9 @@
 Mutating webhook that injects the [Vault-Creds sidecar](https://github.com/uswitch/vault-creds) into pods on pod creation using a custom resource for configuration.
 
 ## Usage
-The webhook will do three things:
+The webhook will do four things:
 * Add a volume called `vault-creds` this is where you will find your credentials
+* VolumeMount the `vault-creds` volume into your existing containers
 * Add an init-container called `vault-creds-<database-role>-init`
 * Add a container called `vault-creds-<database-role>`
 
@@ -21,9 +22,11 @@ spec:
   serviceAccount: my_service_account
   database: mydb
   role: readonly
+  outputPath: /config #Optional: defaults to /etc/database
+  outuptFile: mycreds #Optional: defaults to database-role
 ```
 
-The webhook expects there to be a volume called `vault-template` already there, this volume should be a configmap and the configmap should contain a file called `database-role` e.g `mydb-readonly` which will be used for templating your credentials. It will output the credentials to a file called `database-role` in the `vault-creds` volume.
+The webhook expects there to be a volume called `vault-template` already there, this volume should be a configmap and it should contain a file called `database-role` e.g `mydb-readonly` which will be used for templating your credentials. It will output the credentials to a file called `/etc/database/database-role` in the `vault-creds` volume. Note that the path where the file is found and the name of the file can be changed using the `outputPath` and `outuptFile` fields in the CRD respectively.
 
 Example Deployment:
 
@@ -43,10 +46,7 @@ spec:
       containers:
       - name: myapp
         args:
-        - --db-creds=/creds/mydb-readonly
-        volumeMounts:
-          name: vault-creds
-          mountPath: /creds
+        - --db-creds=/etc/database/mydb-readonly
       volumes:
       - name: vault-template
         configMap:
