@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/tools/cache"
 
+	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
 	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	webhookclient "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
@@ -22,6 +23,14 @@ func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 	binder := &bindingAggregator{}
 	watcher := cache.NewListWatchFromClient(client.VaultwebhookV1alpha1().RESTClient(), "databasecredentialbindings", "", fields.Everything())
 	binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
+	cacheSize := prometheus.NewCounterFunc(
+		prometheus.CounterOpts{
+			Name: "database_credential_binding_cache_size",
+			Help: "Current size of the Database Credential Binding cache",
+		},
+		func() float64 { return float64(binder.cacheSize()) },
+	)
+	prometheus.MustRegister(cacheSize)
 	return binder
 }
 
@@ -57,4 +66,8 @@ func (b *bindingAggregator) List() ([]v1alpha1.DatabaseCredentialBinding, error)
 	}
 	return bindingList, nil
 
+}
+
+func (b *bindingAggregator) cacheSize() int {
+	return len(b.store.List())
 }

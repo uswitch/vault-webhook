@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	webhook "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
@@ -64,6 +66,20 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	mux := http.NewServeMux()
+	mux.HandleFunc("/mutate", whsvr.serve)
+	promhandler := prometheus.InstrumentHandler("vault-webhook", mux)
+	whsvr.server.Handler = promhandler
+
+	healthMux := http.NewServeMux()
+	healthMux.Handle("/metrics", promhttp.Handler())
+	healthMux.HandleFunc("/healthz", whsvr.checkHealth)
+
+	healthServer := &http.Server{
+		Addr:    fmt.Sprintf(":8080"),
+		Handler: healthMux,
+	}
+
 	watcher.Run(ctx)
 
 	log.Info("Waiting for informer caches to sync")
@@ -71,16 +87,18 @@ func main() {
 		log.Fatal("failed to wait for caches to sync")
 	}
 
-	// define http server and server handler
-	mux := http.NewServeMux()
-	mux.HandleFunc("/mutate", whsvr.serve)
-	whsvr.server.Handler = mux
 	log.Info("starting server")
 
 	// start webhook server in new rountine
 	go func() {
 		if err := whsvr.server.ListenAndServeTLS("", ""); err != nil {
-			log.Errorf("Failed to listen and serve webhook server: %v", err)
+			log.Fatalf("Failed to listen and serve webhook server: %v", err)
+		}
+	}()
+
+	go func() {
+		if err := healthServer.ListenAndServe(); err != nil {
+			log.Fatalf("Failed to listen and serve health server: %v", err)
 		}
 	}()
 
