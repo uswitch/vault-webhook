@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: vault-webhook-deployment
+  namespace: kube-system
+  labels:
+    app: vault-webhook
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: vault-webhook
+    spec:
+      containers:
+        - name: vault-webhook
+          image: quay.io/uswitch/vault-webhook
+          args:
+            - --login-path=kubernetes/login
+            - --vault-address=https://vault.address.com
+            - --sidecar-image=quay.io/uswitch/vault-creds
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: vault-webhook-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-webhook
+  namespace: kube-system
+  labels:
+    app: vault-webhook
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+  selector:
+    app: vault-webhook
