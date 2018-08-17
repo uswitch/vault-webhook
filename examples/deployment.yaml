@@ -11,6 +11,9 @@ spec:
     metadata:
       labels:
         app: vault-webhook
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
     spec:
       containers:
         - name: vault-webhook
@@ -23,6 +26,10 @@ spec:
             - name: webhook-certs
               mountPath: /etc/webhook/certs
               readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
       volumes:
         - name: webhook-certs
           secret:
