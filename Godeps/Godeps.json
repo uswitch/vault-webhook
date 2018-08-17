@@ -16,6 +16,10 @@
 			"Rev": "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
 		},
 		{
+			"ImportPath": "github.com/beorn7/perks/quantile",
+			"Rev": "3a771d992973f24aa725d07868b467d1ddfceafb"
+		},
+		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Comment": "v1.1.0-1-g782f496",
 			"Rev": "782f4967f2dc4564575ca782fe2d04090b5faca8"
@@ -40,23 +44,28 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+			"Comment": "v1.1.0-27-gaa810b6",
+			"Rev": "aa810b61a9c79d51363740d207bb46cf8e620ed5"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/ptypes",
-			"Rev": "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+			"Comment": "v1.1.0-27-gaa810b6",
+			"Rev": "aa810b61a9c79d51363740d207bb46cf8e620ed5"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/ptypes/any",
-			"Rev": "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+			"Comment": "v1.1.0-27-gaa810b6",
+			"Rev": "aa810b61a9c79d51363740d207bb46cf8e620ed5"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/ptypes/duration",
-			"Rev": "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+			"Comment": "v1.1.0-27-gaa810b6",
+			"Rev": "aa810b61a9c79d51363740d207bb46cf8e620ed5"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/ptypes/timestamp",
-			"Rev": "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+			"Comment": "v1.1.0-27-gaa810b6",
+			"Rev": "aa810b61a9c79d51363740d207bb46cf8e620ed5"
 		},
 		{
 			"ImportPath": "github.com/google/btree",
@@ -100,6 +109,11 @@
 			"Rev": "10a568c51178f31e41456cedaac7838e0f4f7360"
 		},
 		{
+			"ImportPath": "github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"Comment": "v1.0.1",
+			"Rev": "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+		},
+		{
 			"ImportPath": "github.com/modern-go/concurrent",
 			"Comment": "1.0.3",
 			"Rev": "bacd9c7ef1dd9b15be4a9909b8ac7a4e313eec94"
@@ -113,6 +127,49 @@
 			"ImportPath": "github.com/peterbourgon/diskv",
 			"Comment": "v2.0.1",
 			"Rev": "5f041e8faa004a95c88a202771f4cc3e991971e6"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/prometheus",
+			"Comment": "v0.9.0-pre1-126-g5b23715",
+			"Rev": "5b23715facdef1452016bae512489c3cdf82458c"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/prometheus/promhttp",
+			"Comment": "v0.9.0-pre1-126-g5b23715",
+			"Rev": "5b23715facdef1452016bae512489c3cdf82458c"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_model/go",
+			"Comment": "model-0.0.2-18-g5c3871d",
+			"Rev": "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/expfmt",
+			"Rev": "c7de2306084e37d54b8be01f3541a8464345e9a5"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg",
+			"Rev": "c7de2306084e37d54b8be01f3541a8464345e9a5"
+		},
+		{
+			"ImportPath": "github.com/prometheus/common/model",
+			"Rev": "c7de2306084e37d54b8be01f3541a8464345e9a5"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs",
+			"Rev": "05ee40e3a273f7245e8777337fc7b46e533a9a92"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs/internal/util",
+			"Rev": "05ee40e3a273f7245e8777337fc7b46e533a9a92"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs/nfs",
+			"Rev": "05ee40e3a273f7245e8777337fc7b46e533a9a92"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs/xfs",
+			"Rev": "05ee40e3a273f7245e8777337fc7b46e533a9a92"
 		},
 		{
 			"ImportPath": "github.com/sirupsen/logrus",

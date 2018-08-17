@@ -214,3 +214,7 @@ func appendIfMissing(slice []database, d database) []database {
 	}
 	return append(slice, d)
 }
+
+func (srv webHookServer) checkHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+}
