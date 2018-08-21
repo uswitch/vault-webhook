@@ -166,9 +166,8 @@ func addVolume(pod *corev1.Pod) (patch []patchOperation) {
 }
 
 func addVolumeMount(pod *corev1.Pod, databases []database) (patch []patchOperation) {
-	inited := false
-	var value interface{}
-	path := "/spec/containers"
+
+	containers := []corev1.Container{}
 
 	for _, container := range pod.Spec.Containers {
 		for _, database := range databases {
@@ -178,21 +177,16 @@ func addVolumeMount(pod *corev1.Pod, databases []database) (patch []patchOperati
 			}
 			//we don't want to mount the same path twice
 			container.VolumeMounts = appendVolumeMountIfMissing(container.VolumeMounts, volumeMount)
+			containers = append(containers, container)
 		}
-		if inited == true {
-			path = path + "/-"
-			value = container
-		} else {
-			value = []corev1.Container{container}
-			inited = true
-		}
-		patch = append(patch, patchOperation{
-			Op:    "replace",
-			Path:  path,
-			Value: value,
-		})
-
 	}
+
+	patch = append(patch, patchOperation{
+		Op:    "replace",
+		Path:  "/spec/containers",
+		Value: containers,
+	})
+
 	return patch
 }
 
