@@ -12,13 +12,16 @@ import (
 func createPatch(pod *corev1.Pod, namespace, serviceAccountToken string, databases []database) ([]byte, error) {
 	patch := []patchOperation{}
 	patch = append(patch, addVolume(pod)...)
-	patch = append(patch, addVolumeMount(pod, databases)...)
+	pod.Spec.Containers = addVolumeMount(pod.Spec.Containers, databases)
+	if len(pod.Spec.InitContainers) != 0 {
+		pod.Spec.InitContainers = addVolumeMount(pod.Spec.InitContainers, databases)
+	}
 	patch = append(patch, addVault(pod, namespace, serviceAccountToken, databases)...)
 	return json.Marshal(patch)
 }
 
 func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases []database) (patch []patchOperation) {
-	inited := false
+	initContainers := []corev1.Container{}
 	for _, databaseInfo := range databases {
 
 		database := databaseInfo.database
@@ -108,31 +111,32 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 			vaultContainer.Args = append(vaultContainer.Args, "--job")
 		}
 
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  "/spec/containers/-",
-			Value: vaultContainer,
-		})
+		pod.Spec.Containers = append(pod.Spec.Containers, vaultContainer)
 
 		initContainer.Args = append(initContainer.Args, "--init")
 		initContainer.Name = initContainer.Name + "-init"
-		var init interface{}
-
-		initPath := "/spec/initContainers"
-		if len(pod.Spec.InitContainers) != 0 || inited == true {
-			initPath = initPath + "/-"
-			init = initContainer
-		} else {
-			init = []corev1.Container{initContainer}
-			inited = true
-		}
-
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  initPath,
-			Value: init,
-		})
+		initContainers = append(initContainers, initContainer)
 	}
+
+	var initOp string
+	if len(pod.Spec.InitContainers) != 0 {
+		initContainers = append(initContainers, pod.Spec.InitContainers...)
+		initOp = "replace"
+	} else {
+		initOp = "add"
+	}
+
+	patch = append(patch, []patchOperation{
+		patchOperation{
+			Op:    "replace",
+			Path:  "/spec/containers",
+			Value: pod.Spec.Containers,
+		},
+		patchOperation{
+			Op:    initOp,
+			Path:  "/spec/initContainers",
+			Value: initContainers,
+		}}...)
 
 	return patch
 }
@@ -165,11 +169,11 @@ func addVolume(pod *corev1.Pod) (patch []patchOperation) {
 	return patch
 }
 
-func addVolumeMount(pod *corev1.Pod, databases []database) (patch []patchOperation) {
+func addVolumeMount(containers []corev1.Container, databases []database) []corev1.Container {
 
-	containers := []corev1.Container{}
+	modifiedContainers := []corev1.Container{}
 
-	for _, container := range pod.Spec.Containers {
+	for _, container := range containers {
 		for _, database := range databases {
 			volumeMount := corev1.VolumeMount{
 				Name:      "vault-creds",
@@ -177,17 +181,11 @@ func addVolumeMount(pod *corev1.Pod, databases []database) (patch []patchOperati
 			}
 			//we don't want to mount the same path twice
 			container.VolumeMounts = appendVolumeMountIfMissing(container.VolumeMounts, volumeMount)
-			containers = append(containers, container)
+			modifiedContainers = append(modifiedContainers, container)
 		}
 	}
 
-	patch = append(patch, patchOperation{
-		Op:    "replace",
-		Path:  "/spec/containers",
-		Value: containers,
-	})
-
-	return patch
+	return modifiedContainers
 }
 
 func appendVolumeMountIfMissing(slice []corev1.VolumeMount, v corev1.VolumeMount) []corev1.VolumeMount {
