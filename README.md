@@ -23,7 +23,7 @@ spec:
   database: mydb
   role: readonly
   outputPath: /config #Optional: defaults to /etc/database
-  outuptFile: mycreds #Optional: defaults to database-role
+  outputFile: mycreds #Optional: defaults to database-role
 ```
 
 The webhook expects there to be a volume called `vault-template` already there, this volume should be a configmap and it should contain a file called `database-role` e.g `mydb-readonly` which will be used for templating your credentials. It will output the credentials to a file called `/etc/database/database-role` in the `vault-creds` volume. Note that the path where the file is found and the name of the file can be changed using the `outputPath` and `outuptFile` fields in the CRD respectively.
