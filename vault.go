@@ -181,8 +181,8 @@ func addVolumeMount(containers []corev1.Container, databases []database) []corev
 			}
 			//we don't want to mount the same path twice
 			container.VolumeMounts = appendVolumeMountIfMissing(container.VolumeMounts, volumeMount)
-			modifiedContainers = append(modifiedContainers, container)
 		}
+		modifiedContainers = append(modifiedContainers, container)
 	}
 
 	return modifiedContainers
