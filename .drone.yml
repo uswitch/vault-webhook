@@ -3,6 +3,11 @@ workspace:
   path: src/github.com/uswitch/vault-webhook
 
 pipeline:
+  test:
+    image: golang:1.10
+    commands:
+      - go test -v -cover $(go list ./... | grep -v /vendor)
+      
   build:
     image: golang:1.10
     commands:
