@@ -110,8 +110,14 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
+	var ownerKind, ownerName string
+
+	if len(pod.ObjectMeta.OwnerReferences) != 0 {
+		ownerKind = pod.ObjectMeta.OwnerReferences[0].Kind
+		ownerName = pod.ObjectMeta.OwnerReferences[0].Name
+	}
 	log.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
-		pod.ObjectMeta.OwnerReferences[0].Kind, req.Namespace, pod.ObjectMeta.OwnerReferences[0].Name, req.UID, req.Operation, req.UserInfo)
+		ownerKind, req.Namespace, ownerName, req.UID, req.Operation, req.UserInfo)
 
 	binds, err := srv.bindings.List()
 	if err != nil {
@@ -146,13 +152,6 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 			},
 		}
 	}
-	if serviceAccountToken == "" {
-		return &v1beta1.AdmissionResponse{
-			Result: &metav1.Status{
-				Message: fmt.Errorf("no service account token was found for service account: %s", pod.Spec.ServiceAccountName).Error(),
-			},
-		}
-	}
 
 	patchBytes, err := createPatch(&pod, req.Namespace, serviceAccountToken, databases)
 	if err != nil {
@@ -178,6 +177,9 @@ func (srv webHookServer) getServiceAccountToken(serviceAccount, namespace string
 	serviceAccountObj, err := srv.client.CoreV1().ServiceAccounts(namespace).Get(serviceAccount, metav1.GetOptions{})
 	if err != nil {
 		return "", err
+	}
+	if len(serviceAccountObj.Secrets) == 0 {
+		return "", fmt.Errorf("no service account token found for service account: %s", serviceAccount)
 	}
 	return serviceAccountObj.Secrets[0].Name, nil
 }
