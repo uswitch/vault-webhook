@@ -107,8 +107,10 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 
 		initContainer := vaultContainer
 
-		if pod.ObjectMeta.OwnerReferences[0].Kind == "Job" {
-			vaultContainer.Args = append(vaultContainer.Args, "--job")
+		if len(pod.ObjectMeta.OwnerReferences) != 0 {
+			if pod.ObjectMeta.OwnerReferences[0].Kind == "Job" {
+				vaultContainer.Args = append(vaultContainer.Args, "--job")
+			}
 		}
 
 		pod.Spec.Containers = append(pod.Spec.Containers, vaultContainer)
