@@ -130,7 +130,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 
 	filteredBindings := filterBindings(binds, req.Namespace)
 	if len(filteredBindings) == 0 {
-		log.Infof("Skipping mutation for %s/%s, no database credential bindings in namespace", req.Namespace, pod.ObjectMeta.OwnerReferences[0].Name)
+		log.Infof("Skipping mutation for %s/%s, no database credential bindings in namespace", req.Namespace, ownerName)
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
 		}
@@ -138,7 +138,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 
 	databases := matchBindings(filteredBindings, pod.Spec.ServiceAccountName)
 	if len(databases) == 0 {
-		log.Infof("Skipping mutation for %s/%s due to policy check", req.Namespace, pod.ObjectMeta.OwnerReferences[0].Name)
+		log.Infof("Skipping mutation for %s/%s due to policy check", req.Namespace, ownerName)
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
 		}
