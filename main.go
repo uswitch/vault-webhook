@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -93,13 +94,13 @@ func main() {
 
 	// start webhook server in new rountine
 	go func() {
-		if err := whsvr.server.ListenAndServeTLS("", ""); err != nil {
+		if err := whsvr.server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to listen and serve webhook server: %v", err)
 		}
 	}()
 
 	go func() {
-		if err := healthServer.ListenAndServe(); err != nil {
+		if err := healthServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to listen and serve health server: %v", err)
 		}
 	}()
@@ -108,5 +109,8 @@ func main() {
 	<-stopCh
 
 	log.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
-	whsvr.server.Shutdown(context.Background())
+	shutDownCTX, shutDownCancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer shutDownCancel()
+	whsvr.server.Shutdown(shutDownCTX)
+	healthServer.Shutdown(shutDownCTX)
 }
