@@ -15,6 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	k8s.io/api v0.15.12
 	k8s.io/apimachinery v0.15.12
