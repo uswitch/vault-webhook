@@ -12,8 +12,6 @@ import (
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	VaultwebhookV1alpha1() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface
-	// Deprecated: please explicitly pick a version if possible.
-	Vaultwebhook() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
@@ -25,12 +23,6 @@ type Clientset struct {
 
 // VaultwebhookV1alpha1 retrieves the VaultwebhookV1alpha1Client
 func (c *Clientset) VaultwebhookV1alpha1() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface {
-	return c.vaultwebhookV1alpha1
-}
-
-// Deprecated: Vaultwebhook retrieves the default version of VaultwebhookClient.
-// Please explicitly pick a version.
-func (c *Clientset) Vaultwebhook() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface {
 	return c.vaultwebhookV1alpha1
 }
 

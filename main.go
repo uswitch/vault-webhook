@@ -15,7 +15,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/kubernetes/staging/src/k8s.io/sample-controller/pkg/signals"
+	"k8s.io/sample-controller/pkg/signals"
 )
 
 var (

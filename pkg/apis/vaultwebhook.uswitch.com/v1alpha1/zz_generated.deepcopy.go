@@ -39,7 +39,7 @@ func (in *DatabaseCredentialBinding) DeepCopyObject() runtime.Object {
 func (in *DatabaseCredentialBindingList) DeepCopyInto(out *DatabaseCredentialBindingList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]DatabaseCredentialBinding, len(*in))
