@@ -30,9 +30,25 @@ func (in *AdmissionRequest) DeepCopyInto(out *AdmissionRequest) {
 	*out = *in
 	out.Kind = in.Kind
 	out.Resource = in.Resource
+	if in.RequestKind != nil {
+		in, out := &in.RequestKind, &out.RequestKind
+		*out = new(v1.GroupVersionKind)
+		**out = **in
+	}
+	if in.RequestResource != nil {
+		in, out := &in.RequestResource, &out.RequestResource
+		*out = new(v1.GroupVersionResource)
+		**out = **in
+	}
 	in.UserInfo.DeepCopyInto(&out.UserInfo)
 	in.Object.DeepCopyInto(&out.Object)
 	in.OldObject.DeepCopyInto(&out.OldObject)
+	if in.DryRun != nil {
+		in, out := &in.DryRun, &out.DryRun
+		*out = new(bool)
+		**out = **in
+	}
+	in.Options.DeepCopyInto(&out.Options)
 	return
 }
 
@@ -63,6 +79,13 @@ func (in *AdmissionResponse) DeepCopyInto(out *AdmissionResponse) {
 		in, out := &in.PatchType, &out.PatchType
 		*out = new(PatchType)
 		**out = **in
+	}
+	if in.AuditAnnotations != nil {
+		in, out := &in.AuditAnnotations, &out.AuditAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	return
 }

@@ -103,7 +103,7 @@ func (c *FakeDatabaseCredentialBindings) DeleteCollection(options *v1.DeleteOpti
 // Patch applies the patch and returns the patched databaseCredentialBinding.
 func (c *FakeDatabaseCredentialBindings) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.DatabaseCredentialBinding, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(databasecredentialbindingsResource, c.ns, name, data, subresources...), &v1alpha1.DatabaseCredentialBinding{})
+		Invokes(testing.NewPatchSubresourceAction(databasecredentialbindingsResource, c.ns, name, pt, data, subresources...), &v1alpha1.DatabaseCredentialBinding{})
 
 	if obj == nil {
 		return nil, err
