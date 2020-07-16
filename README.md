@@ -1,6 +1,8 @@
 # Vault-webhook
 Mutating webhook that injects the [Vault-Creds sidecar](https://github.com/uswitch/vault-creds) into pods on pod creation using a custom resource for configuration.
 
+**Note**: `vault-webhook` will only inject sidecar into pods which are in namespace labelled with `vault-webhook=enabled`.
+
 ## Usage
 The webhook will do four things:
 * Add a volume called `vault-creds` this is where you will find your credentials
