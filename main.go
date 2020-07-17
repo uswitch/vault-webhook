@@ -34,6 +34,7 @@ func main() {
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
 
+	// load certs
 	kpr, err := NewKeypairReloader("/etc/webhook/certs/cert.pem", "/etc/webhook/certs/key.pem")
 	if err != nil {
 		log.Errorf("Failed to load key pair: %v", err)
@@ -58,6 +59,7 @@ func main() {
 
 	srv := http.Server{Addr: fmt.Sprintf(":443")}
 
+	// this will check if there are new certs before every tls handshake
 	t := &tls.Config{GetCertificate: kpr.GetCertificateFunc()}
 	srv.TLSConfig = t
 

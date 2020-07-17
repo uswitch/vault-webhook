@@ -8,15 +8,17 @@ import (
 	"gopkg.in/fsnotify.v1"
 )
 
-type keypairReloader struct {
+// KeypairReloader structs holds cert path and certs
+type KeypairReloader struct {
 	certMu   sync.RWMutex
 	cert     *tls.Certificate
 	certPath string
 	keyPath  string
 }
 
-func NewKeypairReloader(certPath, keyPath string) (*keypairReloader, error) {
-	result := &keypairReloader{
+// NewKeypairReloader will load certs on first run and trigger a goroutine for fsnotify watcher
+func NewKeypairReloader(certPath, keyPath string) (*KeypairReloader, error) {
+	result := &KeypairReloader{
 		certPath: certPath,
 		keyPath:  keyPath,
 	}
@@ -47,6 +49,7 @@ func NewKeypairReloader(certPath, keyPath string) (*keypairReloader, error) {
 			select {
 			// watch for events
 			case event := <-watcher.Events:
+				// fsnotify.create events will tell us if there are new certs
 				if event.Op&fsnotify.Create == fsnotify.Create {
 					log.Printf("Reloading certs")
 					if err := result.reload(); err != nil {
@@ -64,7 +67,8 @@ func NewKeypairReloader(certPath, keyPath string) (*keypairReloader, error) {
 	return result, nil
 }
 
-func (kpr *keypairReloader) reload() error {
+// reload loads updated cert and key whenever they are updated
+func (kpr *KeypairReloader) reload() error {
 	newCert, err := tls.LoadX509KeyPair(kpr.certPath, kpr.keyPath)
 	if err != nil {
 		return err
@@ -75,7 +79,8 @@ func (kpr *keypairReloader) reload() error {
 	return nil
 }
 
-func (kpr *keypairReloader) GetCertificateFunc() func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+// GetCertificateFunc will return function which will be used as tls.Config.GetCertificate
+func (kpr *KeypairReloader) GetCertificateFunc() func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 	return func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 		kpr.certMu.RLock()
 		defer kpr.certMu.RUnlock()
