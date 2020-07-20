@@ -34,7 +34,8 @@ func main() {
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
 
-	pair, err := tls.LoadX509KeyPair("/etc/webhook/certs/cert.pem", "/etc/webhook/certs/key.pem")
+	// load certs
+	kpr, err := NewKeypairReloader("/etc/webhook/certs/cert.pem", "/etc/webhook/certs/key.pem")
 	if err != nil {
 		log.Errorf("Failed to load key pair: %v", err)
 	}
@@ -56,11 +57,14 @@ func main() {
 
 	watcher := NewListWatch(webhookClient)
 
+	srv := http.Server{Addr: fmt.Sprintf(":443")}
+
+	// this will check if there are new certs before every tls handshake
+	t := &tls.Config{GetCertificate: kpr.GetCertificateFunc()}
+	srv.TLSConfig = t
+
 	whsvr := webHookServer{
-		server: &http.Server{
-			Addr:      fmt.Sprintf(":443"),
-			TLSConfig: &tls.Config{Certificates: []tls.Certificate{pair}},
-		},
+		server:   &srv,
 		client:   client,
 		bindings: watcher,
 	}
