@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vault-webhook-deployment
@@ -6,6 +6,9 @@ metadata:
   labels:
     app: vault-webhook
 spec:
+  selector:
+    matchLabels:
+      app: vault-webhook
   replicas: 3
   template:
     metadata:
