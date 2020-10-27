@@ -20,6 +20,7 @@ import (
 
 var (
 	vaultAddr        string
+	gatewayAddr      string
 	loginPath        string
 	secretPathFormat string
 	sidecarImage     string
@@ -30,6 +31,7 @@ func main() {
 	kingpin.Flag("vault-address", "URL of vault").Required().StringVar(&vaultAddr)
 	kingpin.Flag("login-path", "Kubernetes auth login path for vault").Required().StringVar(&loginPath)
 	kingpin.Flag("sidecar-image", "Vault-creds sidecar image to use").Required().StringVar(&sidecarImage)
+	kingpin.Flag("gateway-address", "URL of Push Gateway").StringVar(&gatewayAddr)
 	kingpin.Flag("secret-path-format", "The format for the path used for reading database credentials, where the first %s is the database name and the second %s is the role").Default("%s/creds/%s").StringVar(&secretPathFormat)
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
