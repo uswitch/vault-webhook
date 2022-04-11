@@ -1,7 +1,7 @@
 # Vault-webhook
 Mutating webhook that injects the [Vault-Creds sidecar](https://github.com/uswitch/vault-creds) into pods on pod creation using a custom resource for configuration.
 
-**Note**: `vault-webhook` will only inject sidecar into pods which are in namespace labelled with `vault-webhook=enabled`.
+**Note**: `vault-webhook` will only inject sidecar into pods which are in namespace labelled with `vault_webhook: enabled`. This can be checked by going to the [uswitch/cloud-kubernetes-extensions](https://github.com/uswitch/cloud-kubernetes-extensions) repo in [teams.rb](https://github.com/uswitch/cloud-kubernetes-extensions/blob/master/teams.rb).
 
 ## Usage
 The webhook will do four things:
