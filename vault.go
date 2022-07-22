@@ -61,7 +61,7 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 			Args: []string{
 				"--vault-addr=" + vaultAddr,
 				"--gateway-addr=" + gatewayAddr,
-				"--ca-cert=/vault.ca",
+				"--ca-cert=" + vaultCaPath,
 				"--secret-path=" + secretPath,
 				"--login-path=" + loginPath,
 				"--auth-role=" + authRole,
