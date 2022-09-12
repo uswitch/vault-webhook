@@ -7,11 +7,11 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/fsnotify.v1 v1.4.7
-	k8s.io/api v0.23.7
-	k8s.io/apimachinery v0.23.7
-	k8s.io/client-go v0.23.7
-	k8s.io/code-generator v0.23.7
-	k8s.io/sample-controller v0.23.7
+	k8s.io/api v0.23.10
+	k8s.io/apimachinery v0.23.10
+	k8s.io/client-go v0.23.10
+	k8s.io/code-generator v0.23.10
+	k8s.io/sample-controller v0.23.10
 )
 
 require (
