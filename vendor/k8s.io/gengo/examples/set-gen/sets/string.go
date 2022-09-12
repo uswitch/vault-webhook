@@ -28,7 +28,7 @@ type String map[string]Empty
 
 // NewString creates a String from a list of values.
 func NewString(items ...string) String {
-	ss := String{}
+	ss := make(String, len(items))
 	ss.Insert(items...)
 	return ss
 }
@@ -46,17 +46,19 @@ func StringKeySet(theMap interface{}) String {
 }
 
 // Insert adds items to the set.
-func (s String) Insert(items ...string) {
+func (s String) Insert(items ...string) String {
 	for _, item := range items {
 		s[item] = Empty{}
 	}
+	return s
 }
 
 // Delete removes all items from the set.
-func (s String) Delete(items ...string) {
+func (s String) Delete(items ...string) String {
 	for _, item := range items {
 		delete(s, item)
 	}
+	return s
 }
 
 // Has returns true if and only if item is contained in the set.
@@ -85,20 +87,39 @@ func (s String) HasAny(items ...string) bool {
 	return false
 }
 
-// Difference returns a set of objects that are not in s2
+// Clone returns a new set which is a copy of the current set.
+func (s String) Clone() String {
+	result := make(String, len(s))
+	for key := range s {
+		result.Insert(key)
+	}
+	return result
+}
+
+// Difference returns a set of objects that are not in s2.
 // For example:
 // s1 = {a1, a2, a3}
 // s2 = {a1, a2, a4, a5}
 // s1.Difference(s2) = {a3}
 // s2.Difference(s1) = {a4, a5}
-func (s String) Difference(s2 String) String {
+func (s1 String) Difference(s2 String) String {
 	result := NewString()
-	for key := range s {
+	for key := range s1 {
 		if !s2.Has(key) {
 			result.Insert(key)
 		}
 	}
 	return result
+}
+
+// SymmetricDifference returns a set of elements which are in either of the sets, but not in their intersection.
+// For example:
+// s1 = {a1, a2, a3}
+// s2 = {a1, a2, a4, a5}
+// s1.SymmetricDifference(s2) = {a3, a4, a5}
+// s2.SymmetricDifference(s1) = {a3, a4, a5}
+func (s1 String) SymmetricDifference(s2 String) String {
+	return s1.Difference(s2).Union(s2.Difference(s1))
 }
 
 // Union returns a new set which includes items in either s1 or s2.
@@ -108,10 +129,7 @@ func (s String) Difference(s2 String) String {
 // s1.Union(s2) = {a1, a2, a3, a4}
 // s2.Union(s1) = {a1, a2, a3, a4}
 func (s1 String) Union(s2 String) String {
-	result := NewString()
-	for key := range s1 {
-		result.Insert(key)
-	}
+	result := s1.Clone()
 	for key := range s2 {
 		result.Insert(key)
 	}
