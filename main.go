@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -37,6 +36,8 @@ func main() {
 	kingpin.Flag("secret-path-format", "The format for the path used for reading database credentials, where the first %s is the database name and the second %s is the role").Default("%s/creds/%s").StringVar(&secretPathFormat)
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
+
+	ctx := context.Background()
 
 	// load certs
 	kpr, err := NewKeypairReloader("/etc/webhook/certs/cert.pem", "/etc/webhook/certs/key.pem")
@@ -71,6 +72,7 @@ func main() {
 		server:   &srv,
 		client:   client,
 		bindings: watcher,
+		ctx:      ctx,
 	}
 
 	stopCh := signals.SetupSignalHandler()
@@ -79,7 +81,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/mutate", whsvr.serve)
-	promhandler := prometheus.InstrumentHandler("vault-webhook", mux)
+	promhandler := promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, mux)
+
 	whsvr.server.Handler = promhandler
 
 	healthMux := http.NewServeMux()

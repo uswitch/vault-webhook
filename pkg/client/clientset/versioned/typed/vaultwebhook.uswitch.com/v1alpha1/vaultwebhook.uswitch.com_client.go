@@ -6,6 +6,7 @@ import (
 	v1alpha1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	"github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
+	"context"
 )
 
 type VaultwebhookV1alpha1Interface interface {
@@ -19,7 +20,8 @@ type VaultwebhookV1alpha1Client struct {
 }
 
 func (c *VaultwebhookV1alpha1Client) DatabaseCredentialBindings(namespace string) DatabaseCredentialBindingInterface {
-	return newDatabaseCredentialBindings(c, namespace)
+	ctx := context.Background()
+	return newDatabaseCredentialBindings(ctx, c, namespace)
 }
 
 // NewForConfig creates a new VaultwebhookV1alpha1Client for the given config.
