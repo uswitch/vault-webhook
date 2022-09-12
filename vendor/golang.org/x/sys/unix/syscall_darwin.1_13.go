@@ -7,7 +7,11 @@
 
 package unix
 
-import "unsafe"
+import (
+	"unsafe"
+
+	"golang.org/x/sys/internal/unsafeheader"
+)
 
 //sys	closedir(dir uintptr) (err error)
 //sys	readdir_r(dir uintptr, entry *Dirent, result **Dirent) (res Errno)
@@ -82,7 +86,11 @@ func Getdirentries(fd int, buf []byte, basep *uintptr) (n int, err error) {
 		}
 
 		// Copy entry into return buffer.
-		s := unsafe.Slice((*byte)(unsafe.Pointer(&entry)), reclen)
+		var s []byte
+		hdr := (*unsafeheader.Slice)(unsafe.Pointer(&s))
+		hdr.Data = unsafe.Pointer(&entry)
+		hdr.Cap = reclen
+		hdr.Len = reclen
 		copy(buf, s)
 
 		buf = buf[reclen:]

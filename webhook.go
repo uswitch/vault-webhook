@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
+	"context"
 	log "github.com/sirupsen/logrus"
 	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	"k8s.io/api/admission/v1beta1"
@@ -27,6 +27,7 @@ type webHookServer struct {
 	server   *http.Server
 	client   *kubernetes.Clientset
 	bindings *bindingAggregator
+	ctx      context.Context
 }
 
 type patchOperation struct {
@@ -174,7 +175,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 }
 
 func (srv webHookServer) getServiceAccountToken(serviceAccount, namespace string) (string, error) {
-	serviceAccountObj, err := srv.client.CoreV1().ServiceAccounts(namespace).Get(serviceAccount, metav1.GetOptions{})
+	serviceAccountObj, err := srv.client.CoreV1().ServiceAccounts(namespace).Get(srv.ctx, serviceAccount, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
