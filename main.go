@@ -80,7 +80,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/mutate", whsvr.serve)
-	promhandler := promhttp.Handler()
+	promhandler := prometheus.InstrumentHandler("vault-webhook", mux)
 	whsvr.server.Handler = promhandler
 
 	healthMux := http.NewServeMux()
