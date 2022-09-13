@@ -81,7 +81,10 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/mutate", whsvr.serve)
-	promhandler := prometheus.InstrumentHandler("vault-webhook", mux)
+	enabledScrapers := []scrape.Scraper{scrapeImpl.MyScraperOne{}, scrape.HostScrape{}, scrape.CpuScrape{}, scrape.GpuScrape{}, scrape.DiskScrape{}, scrape.MemoryScrape{}}
+	handlerFunc := newHandler(collector.NewMetrics(), enabledScrapers)
+	promhandler := promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, handlerFunc)
+
 	whsvr.server.Handler = promhandler
 
 	healthMux := http.NewServeMux()
