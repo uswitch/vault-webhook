@@ -11,6 +11,7 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
+	"context"
 )
 
 // DatabaseCredentialBindingsGetter has a method to return a DatabaseCredentialBindingInterface.
@@ -34,13 +35,15 @@ type DatabaseCredentialBindingInterface interface {
 
 // databaseCredentialBindings implements DatabaseCredentialBindingInterface
 type databaseCredentialBindings struct {
+	ctx    context.Context
 	client rest.Interface
 	ns     string
 }
 
 // newDatabaseCredentialBindings returns a DatabaseCredentialBindings
-func newDatabaseCredentialBindings(c *VaultwebhookV1alpha1Client, namespace string) *databaseCredentialBindings {
+func newDatabaseCredentialBindings(ctx context.Context, c *VaultwebhookV1alpha1Client, namespace string) *databaseCredentialBindings {
 	return &databaseCredentialBindings{
+		ctx:    ctx,
 		client: c.RESTClient(),
 		ns:     namespace,
 	}
@@ -54,7 +57,7 @@ func (c *databaseCredentialBindings) Get(name string, options v1.GetOptions) (re
 		Resource("databasecredentialbindings").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
-		Do().
+		Do(c.ctx).
 		Into(result)
 	return
 }
@@ -71,7 +74,7 @@ func (c *databaseCredentialBindings) List(opts v1.ListOptions) (result *v1alpha1
 		Resource("databasecredentialbindings").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Do().
+		Do(c.ctx).
 		Into(result)
 	return
 }
@@ -88,7 +91,7 @@ func (c *databaseCredentialBindings) Watch(opts v1.ListOptions) (watch.Interface
 		Resource("databasecredentialbindings").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
-		Watch()
+		Watch(c.ctx)
 }
 
 // Create takes the representation of a databaseCredentialBinding and creates it.  Returns the server's representation of the databaseCredentialBinding, and an error, if there is any.
@@ -98,7 +101,7 @@ func (c *databaseCredentialBindings) Create(databaseCredentialBinding *v1alpha1.
 		Namespace(c.ns).
 		Resource("databasecredentialbindings").
 		Body(databaseCredentialBinding).
-		Do().
+		Do(c.ctx).
 		Into(result)
 	return
 }
@@ -111,7 +114,7 @@ func (c *databaseCredentialBindings) Update(databaseCredentialBinding *v1alpha1.
 		Resource("databasecredentialbindings").
 		Name(databaseCredentialBinding.Name).
 		Body(databaseCredentialBinding).
-		Do().
+		Do(c.ctx).
 		Into(result)
 	return
 }
@@ -123,7 +126,7 @@ func (c *databaseCredentialBindings) Delete(name string, options *v1.DeleteOptio
 		Resource("databasecredentialbindings").
 		Name(name).
 		Body(options).
-		Do().
+		Do(c.ctx).
 		Error()
 }
 
@@ -139,7 +142,7 @@ func (c *databaseCredentialBindings) DeleteCollection(options *v1.DeleteOptions,
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Timeout(timeout).
 		Body(options).
-		Do().
+		Do(c.ctx).
 		Error()
 }
 
@@ -152,7 +155,7 @@ func (c *databaseCredentialBindings) Patch(name string, pt types.PatchType, data
 		SubResource(subresources...).
 		Name(name).
 		Body(data).
-		Do().
+		Do(c.ctx).
 		Into(result)
 	return
 }

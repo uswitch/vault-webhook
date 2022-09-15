@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: test-dep
+  name: test-dep
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: test-dep
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: test-dep
+    spec:
+      serviceAccountName: binding-acc 
+      containers:
+      - image: nginx
+        name: nginx
+      volumes: 
+      - name: vault-template 
+        configMap: 
+          name: my-template
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: my-template 
+data: 
+  test-readonly: | 
+    username: {{ .Username }} 
+    password: {{ .Password }}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: 
+  name: binding-acc
+
