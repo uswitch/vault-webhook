@@ -81,9 +81,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/mutate", whsvr.serve)
-	enabledScrapers := []scrape.Scraper{scrapeImpl.MyScraperOne{}, scrape.HostScrape{}, scrape.CpuScrape{}, scrape.GpuScrape{}, scrape.DiskScrape{}, scrape.MemoryScrape{}}
-	handlerFunc := newHandler(collector.NewMetrics(), enabledScrapers)
-	promhandler := promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, handlerFunc)
+	promhandler := promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, mux)
 
 	whsvr.server.Handler = promhandler
 
