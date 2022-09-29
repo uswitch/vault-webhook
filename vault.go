@@ -99,10 +99,6 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 					Name:      "vault-creds",
 					MountPath: "/creds/output",
 				},
-				corev1.VolumeMount{
-					Name:      serviceAccountToken,
-					MountPath: "/var/run/secrets/kubernetes.io/serviceaccount",
-				},
 			},
 		}
 
