@@ -146,7 +146,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
-	patchBytes, err := createPatch(&pod, req.Namespace, serviceAccountToken, databases)
+	patchBytes, err := createPatch(&pod, req.Namespace, databases)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
