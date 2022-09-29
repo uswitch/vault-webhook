@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"context"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	"k8s.io/api/admission/v1beta1"
@@ -145,16 +146,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
-	serviceAccountToken, err := srv.getServiceAccountToken(pod.Spec.ServiceAccountName, req.Namespace)
-	if err != nil {
-		return &v1beta1.AdmissionResponse{
-			Result: &metav1.Status{
-				Message: err.Error(),
-			},
-		}
-	}
-
-	patchBytes, err := createPatch(&pod, req.Namespace, serviceAccountToken, databases)
+	patchBytes, err := createPatch(&pod, req.Namespace, databases)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
@@ -172,17 +164,6 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 			return &pt
 		}(),
 	}
-}
-
-func (srv webHookServer) getServiceAccountToken(serviceAccount, namespace string) (string, error) {
-	serviceAccountObj, err := srv.client.CoreV1().ServiceAccounts(namespace).Get(srv.ctx, serviceAccount, metav1.GetOptions{})
-	if err != nil {
-		return "", err
-	}
-	if len(serviceAccountObj.Secrets) == 0 {
-		return "", fmt.Errorf("no service account token found for service account: %s", serviceAccount)
-	}
-	return serviceAccountObj.Secrets[0].Name, nil
 }
 
 func filterBindings(bindings []v1alpha1.DatabaseCredentialBinding, namespace string) []v1alpha1.DatabaseCredentialBinding {
