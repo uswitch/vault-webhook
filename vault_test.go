@@ -92,7 +92,7 @@ func TestAddVaultPatch(t *testing.T) {
 		},
 	}
 
-	patch := addVault(&pod, "foo", "bah", databases)
+	patch := addVault(&pod, "bah", databases)
 
 	if len(patch) != 2 {
 		t.Errorf("patch should have two items, got: %v", len(patch))
