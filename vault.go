@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func createPatch(pod *corev1.Pod, namespace databases []database) ([]byte, error) {
+func createPatch(pod *corev1.Pod, namespace, databases []database) ([]byte, error) {
 	patch := []patchOperation{}
 	patch = append(patch, addVolume(pod)...)
 	pod.Spec.Containers = addVolumeMount(pod.Spec.Containers, databases)
