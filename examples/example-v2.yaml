@@ -15,7 +15,7 @@ spec:
       labels:
         app: test-dep
     spec:
-      serviceAccountName: binding-acc 
+      serviceAccountName: test
       containers:
       - image: nginx
         name: nginx
@@ -39,5 +39,5 @@ data:
 apiVersion: v1
 kind: ServiceAccount
 metadata: 
-  name: binding-acc
+  name: test
 

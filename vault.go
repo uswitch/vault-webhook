@@ -9,18 +9,18 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func createPatch(pod *corev1.Pod, namespace, serviceAccountToken string, databases []database) ([]byte, error) {
+func createPatch(pod *corev1.Pod, namespace string, databases []database) ([]byte, error) {
 	patch := []patchOperation{}
 	patch = append(patch, addVolume(pod)...)
 	pod.Spec.Containers = addVolumeMount(pod.Spec.Containers, databases)
 	if len(pod.Spec.InitContainers) != 0 {
 		pod.Spec.InitContainers = addVolumeMount(pod.Spec.InitContainers, databases)
 	}
-	patch = append(patch, addVault(pod, namespace, serviceAccountToken, databases)...)
+	patch = append(patch, addVault(pod, namespace, databases)...)
 	return json.Marshal(patch)
 }
 
-func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases []database) (patch []patchOperation) {
+func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []patchOperation) {
 	initContainers := []corev1.Container{}
 	for _, databaseInfo := range databases {
 
@@ -98,10 +98,6 @@ func addVault(pod *corev1.Pod, namespace, serviceAccountToken string, databases 
 				corev1.VolumeMount{
 					Name:      "vault-creds",
 					MountPath: "/creds/output",
-				},
-				corev1.VolumeMount{
-					Name:      serviceAccountToken,
-					MountPath: "/var/run/secrets/kubernetes.io/serviceaccount",
 				},
 			},
 		}
