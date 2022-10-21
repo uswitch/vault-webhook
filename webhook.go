@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
+	v1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -166,8 +166,8 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	}
 }
 
-func filterBindings(bindings []v1alpha1.DatabaseCredentialBinding, namespace string) []v1alpha1.DatabaseCredentialBinding {
-	filteredBindings := []v1alpha1.DatabaseCredentialBinding{}
+func filterBindings(bindings []v1.DatabaseCredentialBinding, namespace string) []v1.DatabaseCredentialBinding {
+	filteredBindings := []v1.DatabaseCredentialBinding{}
 	for _, binding := range bindings {
 		if binding.Namespace == namespace {
 			filteredBindings = append(filteredBindings, binding)
@@ -176,7 +176,7 @@ func filterBindings(bindings []v1alpha1.DatabaseCredentialBinding, namespace str
 	return filteredBindings
 }
 
-func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount string) []database {
+func matchBindings(bindings []v1.DatabaseCredentialBinding, serviceAccount string) []database {
 	matchedBindings := []database{}
 	for _, binding := range bindings {
 		if binding.Spec.ServiceAccount == serviceAccount {

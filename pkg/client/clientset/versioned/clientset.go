@@ -3,7 +3,10 @@
 package versioned
 
 import (
-	vaultwebhookv1alpha1 "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/typed/vaultwebhook.uswitch.com/v1alpha1"
+	"fmt"
+	"net/http"
+
+	vaultwebhookv1 "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/typed/vaultwebhook.uswitch.com/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -11,19 +14,19 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	VaultwebhookV1alpha1() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface
+	VaultwebhookV1() vaultwebhookv1.VaultwebhookV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	vaultwebhookV1alpha1 *vaultwebhookv1alpha1.VaultwebhookV1alpha1Client
+	vaultwebhookV1 *vaultwebhookv1.VaultwebhookV1Client
 }
 
-// VaultwebhookV1alpha1 retrieves the VaultwebhookV1alpha1Client
-func (c *Clientset) VaultwebhookV1alpha1() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface {
-	return c.vaultwebhookV1alpha1
+// VaultwebhookV1 retrieves the VaultwebhookV1Client
+func (c *Clientset) VaultwebhookV1() vaultwebhookv1.VaultwebhookV1Interface {
+	return c.vaultwebhookV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -35,19 +38,47 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 }
 
 // NewForConfig creates a new Clientset for the given config.
+// If config's RateLimiter is not set and QPS and Burst are acceptable,
+// NewForConfig will generate a rate-limiter in configShallowCopy.
+// NewForConfig is equivalent to NewForConfigAndClient(c, httpClient),
+// where httpClient was generated with rest.HTTPClientFor(c).
 func NewForConfig(c *rest.Config) (*Clientset, error) {
 	configShallowCopy := *c
-	if configShallowCopy.RateLimiter == nil && configShallowCopy.QPS > 0 {
-		configShallowCopy.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(configShallowCopy.QPS, configShallowCopy.Burst)
+
+	if configShallowCopy.UserAgent == "" {
+		configShallowCopy.UserAgent = rest.DefaultKubernetesUserAgent()
 	}
-	var cs Clientset
-	var err error
-	cs.vaultwebhookV1alpha1, err = vaultwebhookv1alpha1.NewForConfig(&configShallowCopy)
+
+	// share the transport between all clients
+	httpClient, err := rest.HTTPClientFor(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
 
-	cs.DiscoveryClient, err = discovery.NewDiscoveryClientForConfig(&configShallowCopy)
+	return NewForConfigAndClient(&configShallowCopy, httpClient)
+}
+
+// NewForConfigAndClient creates a new Clientset for the given config and http client.
+// Note the http client provided takes precedence over the configured transport values.
+// If config's RateLimiter is not set and QPS and Burst are acceptable,
+// NewForConfigAndClient will generate a rate-limiter in configShallowCopy.
+func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset, error) {
+	configShallowCopy := *c
+	if configShallowCopy.RateLimiter == nil && configShallowCopy.QPS > 0 {
+		if configShallowCopy.Burst <= 0 {
+			return nil, fmt.Errorf("burst is required to be greater than 0 when RateLimiter is not set and QPS is set to greater than 0")
+		}
+		configShallowCopy.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(configShallowCopy.QPS, configShallowCopy.Burst)
+	}
+
+	var cs Clientset
+	var err error
+	cs.vaultwebhookV1, err = vaultwebhookv1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
+
+	cs.DiscoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -57,17 +88,17 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // NewForConfigOrDie creates a new Clientset for the given config and
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
-	var cs Clientset
-	cs.vaultwebhookV1alpha1 = vaultwebhookv1alpha1.NewForConfigOrDie(c)
-
-	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
-	return &cs
+	cs, err := NewForConfig(c)
+	if err != nil {
+		panic(err)
+	}
+	return cs
 }
 
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.vaultwebhookV1alpha1 = vaultwebhookv1alpha1.New(c)
+	cs.vaultwebhookV1 = vaultwebhookv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

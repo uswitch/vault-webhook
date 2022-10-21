@@ -1,3 +1,5 @@
+//go:generate ./scripts/update
+
 package main
 
 import (
@@ -10,7 +12,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
+	v1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1"
 	webhookclient "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
 )
 
@@ -21,8 +23,8 @@ type bindingAggregator struct {
 
 func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 	binder := &bindingAggregator{}
-	watcher := cache.NewListWatchFromClient(client.VaultwebhookV1alpha1().RESTClient(), "databasecredentialbindings", "", fields.Everything())
-	binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
+	watcher := cache.NewListWatchFromClient(client.VaultwebhookV1().RESTClient(), "databasecredentialbindings", "", fields.Everything())
+	binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
 	cacheSize := prometheus.NewCounterFunc(
 		prometheus.CounterOpts{
 			Name: "database_credential_binding_cache_size",
@@ -54,11 +56,11 @@ func (b *bindingAggregator) Run(ctx context.Context) error {
 	return nil
 }
 
-func (b *bindingAggregator) List() ([]v1alpha1.DatabaseCredentialBinding, error) {
-	bindingList := make([]v1alpha1.DatabaseCredentialBinding, 0)
+func (b *bindingAggregator) List() ([]v1.DatabaseCredentialBinding, error) {
+	bindingList := make([]v1.DatabaseCredentialBinding, 0)
 	bindings := b.store.List()
 	for _, obj := range bindings {
-		binding, ok := obj.(*v1alpha1.DatabaseCredentialBinding)
+		binding, ok := obj.(*v1.DatabaseCredentialBinding)
 		if !ok {
 			return nil, fmt.Errorf("unexpected object in store: %+v", obj)
 		}

@@ -1,5 +1,5 @@
 ---
-apiVersion: vaultwebhook.uswitch.com/v1alpha1
+apiVersion: vaultwebhook.uswitch.com/v1
 kind: DatabaseCredentialBinding
 metadata:
   name: testy

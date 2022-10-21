@@ -9,6 +9,7 @@ pipeline:
       - GO111MODULE=on    
     commands:
       - go test -v -cover $(go list ./... | grep -v /vendor)
+      - git diff --exit-code || (echo "Please run 'go generate' to generate the source code" && exit 1)
       
   build:
     image: golang:1.18

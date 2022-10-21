@@ -5,7 +5,7 @@ package externalversions
 import (
 	"fmt"
 
-	v1alpha1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
+	v1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -36,9 +36,9 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=vaultwebhook.uswitch.com, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("databasecredentialbindings"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Vaultwebhook().V1alpha1().DatabaseCredentialBindings().Informer()}, nil
+	// Group=vaultwebhook.uswitch.com, Version=v1
+	case v1.SchemeGroupVersion.WithResource("databasecredentialbindings"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Vaultwebhook().V1().DatabaseCredentialBindings().Informer()}, nil
 
 	}
 

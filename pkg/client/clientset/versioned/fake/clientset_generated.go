@@ -4,8 +4,8 @@ package fake
 
 import (
 	clientset "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
-	vaultwebhookv1alpha1 "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/typed/vaultwebhook.uswitch.com/v1alpha1"
-	fakevaultwebhookv1alpha1 "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/typed/vaultwebhook.uswitch.com/v1alpha1/fake"
+	vaultwebhookv1 "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/typed/vaultwebhook.uswitch.com/v1"
+	fakevaultwebhookv1 "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/typed/vaultwebhook.uswitch.com/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -58,9 +58,12 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 	return c.tracker
 }
 
-var _ clientset.Interface = &Clientset{}
+var (
+	_ clientset.Interface = &Clientset{}
+	_ testing.FakeClient  = &Clientset{}
+)
 
-// VaultwebhookV1alpha1 retrieves the VaultwebhookV1alpha1Client
-func (c *Clientset) VaultwebhookV1alpha1() vaultwebhookv1alpha1.VaultwebhookV1alpha1Interface {
-	return &fakevaultwebhookv1alpha1.FakeVaultwebhookV1alpha1{Fake: &c.Fake}
+// VaultwebhookV1 retrieves the VaultwebhookV1Client
+func (c *Clientset) VaultwebhookV1() vaultwebhookv1.VaultwebhookV1Interface {
+	return &fakevaultwebhookv1.FakeVaultwebhookV1{Fake: &c.Fake}
 }

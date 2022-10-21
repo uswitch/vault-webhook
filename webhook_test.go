@@ -3,18 +3,18 @@ package main
 import (
 	"testing"
 
-	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
+	v1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestFilterBindings(t *testing.T) {
-	bindings := []v1alpha1.DatabaseCredentialBinding{
-		v1alpha1.DatabaseCredentialBinding{
+	bindings := []v1.DatabaseCredentialBinding{
+		v1.DatabaseCredentialBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "foo",
 			},
 		},
-		v1alpha1.DatabaseCredentialBinding{
+		v1.DatabaseCredentialBinding{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: "bah",
 			},
@@ -30,14 +30,14 @@ func TestFilterBindings(t *testing.T) {
 
 func TestMatchBindings(t *testing.T) {
 
-	bindings := []v1alpha1.DatabaseCredentialBinding{
-		v1alpha1.DatabaseCredentialBinding{
-			Spec: v1alpha1.DatabaseCredentialBindingSpec{
+	bindings := []v1.DatabaseCredentialBinding{
+		v1.DatabaseCredentialBinding{
+			Spec: v1.DatabaseCredentialBindingSpec{
 				ServiceAccount: "foo",
 			},
 		},
-		v1alpha1.DatabaseCredentialBinding{
-			Spec: v1alpha1.DatabaseCredentialBindingSpec{
+		v1.DatabaseCredentialBinding{
+			Spec: v1.DatabaseCredentialBindingSpec{
 				ServiceAccount: "bah",
 			},
 		},

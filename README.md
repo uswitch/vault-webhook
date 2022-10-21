@@ -15,7 +15,7 @@ This resource links your ServiceAccount to a Database and role
 Example DatabaseCredentialBinding:
 ```yaml
 ---
-apiVersion: vaultwebhook.uswitch.com/v1alpha1
+apiVersion: vaultwebhook.uswitch.com/v1
 kind: DatabaseCredentialBinding
 metadata:
   name: mybinding
@@ -53,4 +53,14 @@ spec:
       - name: vault-template
         configMap:
           name: my-template
+```
+
+## Development
+### Updating CRDs
+```cli
+$ go generate ./...
+Generating deepcopy funcs
+Generating clientset for vaultwebhook.uswitch.com:v1 at github.com/uswitch/vault-webhook/pkg/client/clientset
+Generating listers for vaultwebhook.uswitch.com:v1 at github.com/uswitch/vault-webhook/pkg/client/listers
+Generating informers for vaultwebhook.uswitch.com:v1 at github.com/uswitch/vault-webhook/pkg/client/informers
 ```
