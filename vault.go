@@ -104,8 +104,10 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 
 		initContainer := vaultContainer
 
+		jobLikeOwnerReferencesKinds := map[string]bool{"Job": true, "Workflow": true}
 		if len(pod.ObjectMeta.OwnerReferences) != 0 {
-			if pod.ObjectMeta.OwnerReferences[0].Kind == "Job" {
+			ownerKind := pod.ObjectMeta.OwnerReferences[0].Kind
+			if _, ok := jobLikeOwnerReferencesKinds[ownerKind]; ok {
 				vaultContainer.Args = append(vaultContainer.Args, "--job")
 			}
 		}
