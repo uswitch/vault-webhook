@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/prometheus/client_golang v1.13.0
 	github.com/sirupsen/logrus v1.6.0
-	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/fsnotify.v1 v1.4.7
 	k8s.io/api v0.23.10

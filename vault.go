@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
@@ -105,10 +104,10 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 
 		initContainer := vaultContainer
 
-		jobLikeOwnerReferencesKinds := []string{"Job", "Workflow"}
-
+		jobLikeOwnerReferencesKinds := map[string]bool{"Job": true, "Workflow": true}
 		if len(pod.ObjectMeta.OwnerReferences) != 0 {
-			if slices.Contains(jobLikeOwnerReferencesKinds, pod.ObjectMeta.OwnerReferences[0].Kind) {
+			ownerKind := pod.ObjectMeta.OwnerReferences[0].Kind
+			if _, ok := jobLikeOwnerReferencesKinds[ownerKind]; ok {
 				vaultContainer.Args = append(vaultContainer.Args, "--job")
 			}
 		}
