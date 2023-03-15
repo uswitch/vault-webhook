@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"k8s.io/api/core/v1"
@@ -102,4 +103,80 @@ func TestAddVaultPatch(t *testing.T) {
 		t.Error("patch should be adding init containers")
 	}
 
+}
+
+func makePodOwnedByKind(ownerKind string) *v1.Pod {
+	return &v1.Pod{
+		Spec: v1.PodSpec{Containers: []v1.Container{v1.Container{}}},
+		ObjectMeta: metav1.ObjectMeta{
+			OwnerReferences: []metav1.OwnerReference{
+				metav1.OwnerReference{
+					Kind: ownerKind,
+				},
+			},
+		},
+	}
+}
+
+func vaultContainers(containers []v1.Container) []v1.Container {
+	var vc []v1.Container
+	for _, container := range containers {
+		if strings.HasPrefix(container.Name, "vault-creds-") {
+			vc = append(vc, container)
+		}
+	}
+
+	return vc
+}
+
+func containersForPatch(patchOps []patchOperation) []v1.Container {
+	for _, patch := range patchOps {
+		if patch.Path == "/spec/containers" {
+			return patch.Value.([]v1.Container)
+		}
+	}
+	return []v1.Container{}
+}
+
+func checkJobFlagExists(container v1.Container) bool {
+	for _, arg := range container.Args {
+		if arg == "--job" {
+			return true
+		}
+	}
+	return false
+}
+
+func TestVaultJobMode(t *testing.T) {
+	kindTestCases := map[string]bool{
+		"Job":        true,
+		"Workflow":   true,
+		"Deployment": false,
+		"FooBar":     false,
+	}
+
+	testNamespace := "testNamespace"
+	testDatabases := []database{
+		{database: "foo", role: "bar"},
+	}
+
+	for kind, _ := range kindTestCases {
+		t.Run(kind, func(t *testing.T) {
+			pod := makePodOwnedByKind(kind)
+			patchOps := addVault(pod, testNamespace, testDatabases)
+			if len(patchOps) < 1 {
+				t.Error("no patch operations returned from addVault function")
+				return
+			}
+
+			containers := vaultContainers(containersForPatch(patchOps))
+			if len(containers) != 1 {
+				t.Errorf("incorrect number of vault sidecars in patch operation, expected=1, received=%d", len(containers))
+			}
+
+			for _, c := range containers {
+				checkJobFlagExists(c)
+			}
+		})
+	}
 }

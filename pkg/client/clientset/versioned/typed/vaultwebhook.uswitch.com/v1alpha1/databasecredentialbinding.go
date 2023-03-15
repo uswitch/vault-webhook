@@ -5,13 +5,13 @@ package v1alpha1
 import (
 	"time"
 
+	"context"
 	v1alpha1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	scheme "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
-	"context"
 )
 
 // DatabaseCredentialBindingsGetter has a method to return a DatabaseCredentialBindingInterface.

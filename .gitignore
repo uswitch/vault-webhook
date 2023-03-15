@@ -1,3 +1,4 @@
 bin/
 deploy/
 skaffold.yaml
+cover.out

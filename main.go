@@ -4,9 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net/http"
-	"os"
-	"time"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -15,6 +12,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/sample-controller/pkg/signals"
+	"net/http"
+	"os"
+	"time"
 )
 
 var (
