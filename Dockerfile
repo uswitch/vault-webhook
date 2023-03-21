@@ -1,5 +1,7 @@
-FROM scratch
+FROM gcr.io/distroless/static:nonroot
 
-ADD bin/vault-webhook vault-webhook
+WORKDIR /
+COPY bin/vault-webhook-linux-amd64 vault-webhook
+USER nonroot:nonroot
 
 ENTRYPOINT ["/vault-webhook"]

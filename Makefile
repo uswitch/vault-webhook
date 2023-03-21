@@ -1,11 +1,10 @@
-APP  = org-api
+APP  = vault-webhook
 
 ARCH = amd64
 BIN  = bin/$(APP)
 BIN_LINUX  = $(BIN)-linux-$(ARCH)
 BIN_DARWIN = $(BIN)-darwin-$(ARCH)
 IMAGE   = localhost/$(APP)
-CMD_SRC = cmd/$(APP)/main.go
 
 SOURCES = $(shell find . -type f -iname "*.go")
 
@@ -14,10 +13,10 @@ SOURCES = $(shell find . -type f -iname "*.go")
 all: test build
 
 $(BIN_DARWIN): $(SOURCES)
-	GOARCH=$(ARCH) GOOS=darwin go build -o $(BIN_DARWIN) $(CMD_SRC)
+	GOARCH=$(ARCH) GOOS=darwin go build -o $(BIN_DARWIN)
 
 $(BIN_LINUX): $(SOURCES)
-	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o $(BIN_LINUX) $(CMD_SRC)
+	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o $(BIN_LINUX)
 
 build: $(BIN_DARWIN) $(BIN_LINUX) fmt vet
 
