@@ -3,10 +3,10 @@
 package v1alpha1
 
 import (
+	"context"
 	v1alpha1 "github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	"github.com/uswitch/vault-webhook/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
-	"context"
 )
 
 type VaultwebhookV1alpha1Interface interface {

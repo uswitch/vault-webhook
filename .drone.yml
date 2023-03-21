@@ -1,21 +1,13 @@
-workspace:
-  base: /go
-  path: src/github.com/uswitch/vault-webhook
-
 pipeline:
   test:
     image: golang:1.18
-    environment:
-      - GO111MODULE=on    
     commands:
-      - go test -v -cover $(go list ./... | grep -v /vendor)
+      - make test
       
   build:
     image: golang:1.18
-    environment:
-      - GO111MODULE=on
     commands:
-      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/vault-webhook
+      - make bin/vault-webhook-linux-amd64
 
   docker-branch:
     image: plugins/docker
