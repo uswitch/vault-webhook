@@ -160,7 +160,7 @@ func TestVaultJobMode(t *testing.T) {
 		{database: "foo", role: "bar"},
 	}
 
-	for kind, _ := range kindTestCases {
+	for kind, shouldExist := range kindTestCases {
 		t.Run(kind, func(t *testing.T) {
 			pod := makePodOwnedByKind(kind)
 			patchOps := addVault(pod, testNamespace, testDatabases)
@@ -175,7 +175,10 @@ func TestVaultJobMode(t *testing.T) {
 			}
 
 			for _, c := range containers {
-				checkJobFlagExists(c)
+				jobFlagExists := checkJobFlagExists(c)
+				if jobFlagExists != shouldExist {
+					t.Errorf("job flag state incorrect for king=%q, expected=%t, received=%t", kind, shouldExist, jobFlagExists)
+				}
 			}
 		})
 	}
