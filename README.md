@@ -57,7 +57,7 @@ spec:
 
 ## Args
 
-```sh
+```ShellSession
 usage: vault-webhook-linux-amd64 --vault-address=VAULT-ADDRESS --login-path=LOGIN-PATH --sidecar-image=SIDECAR-IMAGE [<flags>]
 
 Flags:
