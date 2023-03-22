@@ -54,3 +54,21 @@ spec:
         configMap:
           name: my-template
 ```
+
+## Args
+
+```ShellSession
+usage: vault-webhook-linux-amd64 --vault-address=VAULT-ADDRESS --login-path=LOGIN-PATH --sidecar-image=SIDECAR-IMAGE [<flags>]
+
+Flags:
+  --help                         Show context-sensitive help (also try --help-long and --help-man).
+  --vault-address=VAULT-ADDRESS  URL of vault
+  --vault-ca-path=VAULT-CA-PATH  Path to the CA cert for vault
+  --login-path=LOGIN-PATH        Kubernetes auth login path for vault
+  --sidecar-image=SIDECAR-IMAGE  Vault-creds sidecar image to use
+  --gateway-address=GATEWAY-ADDRESS
+                                 URL of Push Gateway
+  --secret-path-format="%s/creds/%s"
+                                 The format for the path used for reading database credentials, where the first %s is the database name and the second %s is the role
+  --server-address=":8443"       The address the webhook server will listen on.
+```

@@ -24,6 +24,7 @@ var (
 	loginPath        string
 	secretPathFormat string
 	sidecarImage     string
+	serverAddress    string
 )
 
 func main() {
@@ -34,6 +35,7 @@ func main() {
 	kingpin.Flag("sidecar-image", "Vault-creds sidecar image to use").Required().StringVar(&sidecarImage)
 	kingpin.Flag("gateway-address", "URL of Push Gateway").StringVar(&gatewayAddr)
 	kingpin.Flag("secret-path-format", "The format for the path used for reading database credentials, where the first %s is the database name and the second %s is the role").Default("%s/creds/%s").StringVar(&secretPathFormat)
+	kingpin.Flag("server-address", "The address the webhook server will listen on.").Default(":8443").StringVar(&serverAddress)
 	kingpin.Parse()
 	log.SetOutput(os.Stderr)
 
@@ -62,7 +64,7 @@ func main() {
 
 	watcher := NewListWatch(webhookClient)
 
-	srv := http.Server{Addr: fmt.Sprintf(":443")}
+	srv := http.Server{Addr: serverAddress}
 
 	// this will check if there are new certs before every tls handshake
 	t := &tls.Config{GetCertificate: kpr.GetCertificateFunc()}
