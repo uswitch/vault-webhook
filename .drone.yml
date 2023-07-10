@@ -1,11 +1,11 @@
 pipeline:
   test:
-    image: golang:1.18
+    image: golang:1.20
     commands:
       - make test
       
   build:
-    image: golang:1.18
+    image: golang:1.20
     commands:
       - make bin/vault-webhook-linux-amd64
 
