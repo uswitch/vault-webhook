@@ -4,6 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -11,10 +15,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/sample-controller/pkg/signals"
-	"net/http"
-	"os"
-	"time"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var (
@@ -77,8 +78,8 @@ func main() {
 		ctx:      ctx,
 	}
 
-	stopCh := signals.SetupSignalHandler()
-	ctx, cancel := context.WithCancel(context.Background())
+	cont := ctrl.SetupSignalHandler()
+	ctx, cancel := context.WithCancel(cont)
 	defer cancel()
 
 	mux := http.NewServeMux()
@@ -119,7 +120,7 @@ func main() {
 	}()
 
 	// listening OS shutdown singal
-	<-stopCh
+	<-cont.Done()
 
 	log.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
 	shutDownCTX, shutDownCancel := context.WithTimeout(context.Background(), 20*time.Second)
