@@ -30,8 +30,6 @@ jobs:
           path: bin/
 
   docker-build-push:
-    env:
-      LATEST_TAG: type=raw,value=latest,enable={{is_default_branch}}
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -53,7 +51,6 @@ jobs:
           tags: |
             type=sha,prefix=,format=long
             type=semver,pattern={{raw}}
-            ${{ github.ref_name == 'master' && env.LATEST_TAG  }}
       - uses: docker/build-push-action@v5
         with:
           context: .
