@@ -124,7 +124,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 
 	// 'binds' is the list of database credential bindings
 	binds, err := srv.bindings.List()
-	log.Info(" -----> Database bindings: %+v", binds)
+	log.Infof(" -----> Database bindings: %+v", binds)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
