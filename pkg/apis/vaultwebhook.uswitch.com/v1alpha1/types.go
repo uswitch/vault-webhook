@@ -21,6 +21,7 @@ type DatabaseCredentialBindingSpec struct {
 	OutputFile     string    `json:"outputFile"`
 	ServiceAccount string    `json:"serviceAccount"`
 	Container      Container `json:"container,omitempty"`
+	InitContainer  Container `json:"initcontainer,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
