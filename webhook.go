@@ -99,6 +99,7 @@ func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// This handles the admission review sent by k8s and mutates the pod
 func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	req := ar.Request
 
@@ -121,7 +122,9 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	log.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
 		ownerKind, req.Namespace, ownerName, req.UID, req.Operation, req.UserInfo)
 
+	// 'binds' is the list of database credential bindings
 	binds, err := srv.bindings.List()
+	log.Info(" -----> Database bindings: %+v", binds)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
@@ -138,6 +141,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
+	// TODO: This is were we build database bindings for the pod
 	databases := matchBindings(filteredBindings, pod.Spec.ServiceAccountName)
 	if len(databases) == 0 {
 		log.Infof("Skipping mutation for %s/%s due to policy check", req.Namespace, ownerName)
@@ -176,6 +180,7 @@ func filterBindings(bindings []v1alpha1.DatabaseCredentialBinding, namespace str
 	return filteredBindings
 }
 
+// TODO: This is were we build database bindings for the pod
 func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount string) []database {
 	matchedBindings := []database{}
 	for _, binding := range bindings {

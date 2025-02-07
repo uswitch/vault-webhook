@@ -24,6 +24,7 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 	initContainers := []corev1.Container{}
 	for _, databaseInfo := range databases {
 
+		//* These are fields from the CRD!
 		database := databaseInfo.database
 		role := databaseInfo.role
 		serviceAccount := pod.Spec.ServiceAccountName
@@ -52,7 +53,7 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 
 		vaultContainer := corev1.Container{
 			Image:           sidecarImage,
-			ImagePullPolicy: "Always",
+			ImagePullPolicy: "Always", // TODO: Change to IfNotPresent? https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
 			Resources: corev1.ResourceRequirements{
 				Requests: requests,
 				Limits:   limits,
@@ -102,6 +103,7 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 			},
 		}
 
+		// TODO: remember not to have preStop hook in the init container.
 		initContainer := vaultContainer
 
 		jobLikeOwnerReferencesKinds := map[string]bool{"Job": true, "Workflow": true}
