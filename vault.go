@@ -24,7 +24,9 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 	initContainers := []corev1.Container{}
 	for _, databaseInfo := range databases {
 
-		//* These are fields from the CRD!
+		vaultContainerSpec := databaseInfo.vaultContainer
+		initVaultContainerSpec := databaseInfo.initVaultContainer
+
 		database := databaseInfo.database
 		role := databaseInfo.role
 		serviceAccount := pod.Spec.ServiceAccountName
@@ -53,7 +55,7 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 
 		vaultContainer := corev1.Container{
 			Image:           sidecarImage,
-			ImagePullPolicy: "Always", // TODO: Change to IfNotPresent? https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+			ImagePullPolicy: "Always",
 			Resources: corev1.ResourceRequirements{
 				Requests: requests,
 				Limits:   limits,
@@ -103,8 +105,31 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 			},
 		}
 
-		// TODO: remember not to have preStop hook in the init container.
 		initContainer := vaultContainer
+
+		// TODO: This is likely to be in a function by itself
+		// Conditionally set Lifecycle if it exists in containerSpec
+		if vaultContainerSpec.Lifecycle.PreStop.Exec.Command != nil {
+			vaultContainer.Lifecycle = &corev1.Lifecycle{
+				PreStop: &corev1.LifecycleHandler{
+					Exec: &corev1.ExecAction{
+						Command: vaultContainerSpec.Lifecycle.PreStop.Exec.Command,
+					},
+				},
+			}
+		}
+
+		// Conditionally set Lifecycle if it exists in InitContainerSpec
+		if initVaultContainerSpec.Lifecycle.PreStop.Exec.Command != nil {
+			initContainer.Lifecycle = &corev1.Lifecycle{
+				PreStop: &corev1.LifecycleHandler{
+					Exec: &corev1.ExecAction{
+						Command: initVaultContainerSpec.Lifecycle.PreStop.Exec.Command,
+					},
+				},
+			}
+		}
+		// TODO: End function to wrap
 
 		jobLikeOwnerReferencesKinds := map[string]bool{"Job": true, "Workflow": true}
 		if len(pod.ObjectMeta.OwnerReferences) != 0 {
