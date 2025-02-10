@@ -207,22 +207,17 @@ func appendVolumeMountIfMissing(slice []corev1.VolumeMount, v corev1.VolumeMount
 	return append(slice, v)
 }
 
+// Conditionally set Lifecycle if it exists in containerSpec
 func addLifecycleHook(container corev1.Container, containerSpec v1alpha1.Container) corev1.Container {
-	// Conditionally set Lifecycle if it exists in containerSpec
-	if len(containerSpec.Lifecycle.PreStop.Exec.Command) > 0 {
-		container.Lifecycle = &corev1.Lifecycle{
-			PreStop: &corev1.LifecycleHandler{
-				Exec: &corev1.ExecAction{
-					Command: containerSpec.Lifecycle.PreStop.Exec.Command,
-				},
-			},
-		}
-		// TODO: Fix support for initcontainer's Lifecycle hooks ( Go dep to be updated )
-		// Init containers must have RestartPolicy=Always to be able to support Lifecycle hooks
-		// if isInit {
-		// 	restartPolicy := corev1.ContainerRestartPolicyAlways
-		// 	container.RestartPolicy = &restartPolicy
-		// }
+	if container.Lifecycle != nil {
+		container.Lifecycle = &containerSpec.Lifecycle
 	}
+	// TODO: Fix support for initcontainer's Lifecycle hooks ( Go dep to be updated )
+	// Init containers must have RestartPolicy=Always to be able to support Lifecycle hooks
+	// if isInit {
+	// 	restartPolicy := corev1.ContainerRestartPolicyAlways
+	// 	container.RestartPolicy = &restartPolicy
+	// }
+	//}
 	return container
 }

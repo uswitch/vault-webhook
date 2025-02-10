@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,17 +35,5 @@ type DatabaseCredentialBindingList struct {
 }
 
 type Container struct {
-	Lifecycle Lifecycle `json:"lifecycle,omitempty"`
-}
-
-type Lifecycle struct {
-	PreStop LifecycleHandler `json:"preStop,omitempty"`
-}
-
-type LifecycleHandler struct {
-	Exec ExecAction `json:"exec,omitempty"`
-}
-
-type ExecAction struct {
-	Command []string `json:"command,omitempty"`
+	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
 }

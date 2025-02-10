@@ -198,7 +198,7 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 			if output == "" {
 				output = "/etc/database"
 			}
-			//log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
+			log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
 			//log.Infof("[matchBindings] Printing content of InitContainer: %+v", binding.Spec.InitContainer)
 
 			matchedBindings = appendIfMissing(matchedBindings, database{
