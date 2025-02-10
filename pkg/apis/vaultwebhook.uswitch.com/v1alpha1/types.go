@@ -37,3 +37,27 @@ type DatabaseCredentialBindingList struct {
 type Container struct {
 	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
 }
+
+/*
+Check if Container.Lifecycle.PreStop is valid.
+This is to avoid mishandling incomplete inputs like the below:
+
+https://pkg.go.dev/k8s.io/api/core/v1#LifecycleHandler
+{
+
+	"Lifecycle": {
+		"PostStart": null,
+		"PreStop": {
+		"Exec": null,  # <----- Missing Command!!
+		"HTTPGet": null,
+		"TCPSocket": null
+		}
+	}
+
+}
+*/
+func (c Container) HasValidPreStop() bool {
+	return c.Lifecycle.PreStop != nil &&
+		c.Lifecycle.PreStop.Exec != nil &&
+		len(c.Lifecycle.PreStop.Exec.Command) > 0
+}
