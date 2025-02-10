@@ -209,7 +209,9 @@ func appendVolumeMountIfMissing(slice []corev1.VolumeMount, v corev1.VolumeMount
 
 // Conditionally set Lifecycle if it exists in containerSpec
 func addLifecycleHook(container corev1.Container, containerSpec v1alpha1.Container) corev1.Container {
-	if container.Lifecycle != nil {
+
+	emptyLifecycle := corev1.Lifecycle{}
+	if containerSpec.Lifecycle != emptyLifecycle {
 		container.Lifecycle = &containerSpec.Lifecycle
 	}
 	// TODO: Fix support for initcontainer's Lifecycle hooks ( Go dep to be updated )
