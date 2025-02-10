@@ -38,12 +38,12 @@ type patchOperation struct {
 }
 
 type database struct {
-	database           string
-	role               string
-	outputPath         string
-	outputFile         string
-	vaultContainer     v1alpha1.Container
-	initVaultContainer v1alpha1.Container
+	database       string
+	role           string
+	outputPath     string
+	outputFile     string
+	vaultContainer v1alpha1.Container
+	// initVaultContainer v1alpha1.Container // TODO: Fix support for initcontainer's Lifecycle hooks  ( Go dep to be updated )
 }
 
 func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
@@ -198,17 +198,16 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 			if output == "" {
 				output = "/etc/database"
 			}
-			// TODO: REMOVE THE BELOW LOGS
-			log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
-			log.Infof("[matchBindings] Printing content of InitContainer: %+v", binding.Spec.InitContainer)
+			//log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
+			//log.Infof("[matchBindings] Printing content of InitContainer: %+v", binding.Spec.InitContainer)
 
 			matchedBindings = appendIfMissing(matchedBindings, database{
-				role:               binding.Spec.Role,
-				database:           binding.Spec.Database,
-				outputPath:         output,
-				outputFile:         binding.Spec.OutputFile,
-				vaultContainer:     binding.Spec.Container,
-				initVaultContainer: binding.Spec.InitContainer,
+				role:           binding.Spec.Role,
+				database:       binding.Spec.Database,
+				outputPath:     output,
+				outputFile:     binding.Spec.OutputFile,
+				vaultContainer: binding.Spec.Container,
+				//initVaultContainer: binding.Spec.InitContainer, // TODO: Fix support for initcontainer's Lifecycle hooks  ( Go dep to be updated )
 			})
 		}
 	}
