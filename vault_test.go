@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
-	"k8s.io/api/core/v1"
+	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -182,4 +184,69 @@ func TestVaultJobMode(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Can we add a preStop hook to the vault container?
+func TestAddLifecyclePreStopHook(t *testing.T) {
+
+	// Define test cases
+	var tests = []struct {
+		scenario     string
+		lifecycleObj v1alpha1.Container
+		answer       bool
+	}{
+		{
+			scenario: "Test passing a complete lifecyle config",
+			lifecycleObj: v1alpha1.Container{
+				Lifecycle: v1.Lifecycle{
+					PreStop: &v1.LifecycleHandler{
+						Exec: &v1.ExecAction{
+							Command: []string{"echo", "hello"},
+						},
+					},
+				},
+			},
+			answer: true,
+		},
+		{
+			scenario: "Test passing an incomplete lifecycle config",
+			lifecycleObj: v1alpha1.Container{
+				Lifecycle: v1.Lifecycle{
+					PreStop: &v1.LifecycleHandler{
+						Exec: nil,
+					},
+				},
+			},
+			answer: false,
+		},
+		{
+			// v1alpha1.Container{}, comes from corev1.Container{} and this ALWAYS have a c.Lifecycle object. The latter, always has pointers to PostStart and PreStop handlers ( but no further down the struct since they are pointers )
+			// if our dcb input does not specify a container object, the received input will look like this: {Lifecycle:{PostStart:nil PreStop:nil}}
+			scenario: "Test passing no lifecycle config",
+			lifecycleObj: v1alpha1.Container{
+				Lifecycle: v1.Lifecycle{
+					PreStop: nil,
+				},
+			},
+			answer: false,
+		},
+	}
+
+	// Run tests
+	for _, tt := range tests {
+		// t.Run enables running "subtests", one for each table entry. These are shown separately when executing `go test -v`.
+		vaultContainer := v1.Container{} // Define a Vault sidecar Container
+		testname := fmt.Sprintf("%v", tt.scenario)
+		t.Run(testname, func(t *testing.T) {
+			ans := addLifecycleHook(vaultContainer, tt.lifecycleObj)
+
+			//log.Printf("%+v", ans)
+			isValid := ans.Lifecycle != nil && ans.Lifecycle.PreStop != nil && ans.Lifecycle.PreStop.Exec != nil && len(ans.Lifecycle.PreStop.Exec.Command) > 0
+
+			if isValid != tt.answer {
+				t.Errorf("got %v, want %v", isValid, tt.answer)
+			}
+		})
+	}
+
 }

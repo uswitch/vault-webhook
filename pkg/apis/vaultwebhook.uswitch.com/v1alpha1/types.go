@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -15,11 +16,12 @@ type DatabaseCredentialBinding struct {
 }
 
 type DatabaseCredentialBindingSpec struct {
-	Database       string `json:"database"`
-	Role           string `json:"role"`
-	OutputPath     string `json:"outputPath"`
-	OutputFile     string `json:"outputFile"`
-	ServiceAccount string `json:"serviceAccount"`
+	Database       string    `json:"database"`
+	Role           string    `json:"role"`
+	OutputPath     string    `json:"outputPath"`
+	OutputFile     string    `json:"outputFile"`
+	ServiceAccount string    `json:"serviceAccount"`
+	Container      Container `json:"container,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -29,4 +31,24 @@ type DatabaseCredentialBindingList struct {
 	metav1.ListMeta `json:"metadata"`
 
 	Items []DatabaseCredentialBinding `json:"items"`
+}
+
+type Container struct {
+	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
+}
+
+/*
+https://pkg.go.dev/k8s.io/api/core/v1#LifecycleHandler
+Check if Container.Lifecycle.PreStop is valid. This is to avoid mishandling incomplete inputs like the below:
+
+	{	"Lifecycle": {
+			"PostStart": null,
+			"PreStop": {
+			  "Exec": null,  # <----- Missing Command!!
+			  "HTTPGet": null,"TCPSocket": null}}}
+*/
+func (c Container) HasValidPreStop() bool {
+	return c.Lifecycle.PreStop != nil &&
+		c.Lifecycle.PreStop.Exec != nil &&
+		len(c.Lifecycle.PreStop.Exec.Command) > 0
 }

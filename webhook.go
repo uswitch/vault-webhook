@@ -38,10 +38,11 @@ type patchOperation struct {
 }
 
 type database struct {
-	database   string
-	role       string
-	outputPath string
-	outputFile string
+	database       string
+	role           string
+	outputPath     string
+	outputFile     string
+	vaultContainer v1alpha1.Container
 }
 
 func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
@@ -99,6 +100,7 @@ func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// This handles the admission review sent by k8s and mutates the pod
 func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	req := ar.Request
 
@@ -121,7 +123,9 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	log.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
 		ownerKind, req.Namespace, ownerName, req.UID, req.Operation, req.UserInfo)
 
+	// A list of ALL the bindings.
 	binds, err := srv.bindings.List()
+	log.Infof("[mutate] List of all bindings: %+v", binds)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
@@ -130,6 +134,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
+	// Filter out the bindings that are not in the target namespace
 	filteredBindings := filterBindings(binds, req.Namespace)
 	if len(filteredBindings) == 0 {
 		log.Infof("Skipping mutation for %s/%s, no database credential bindings in namespace", req.Namespace, ownerName)
@@ -138,6 +143,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
+	// Identify bindings with ServiceAccount field matching the pod's ServiceAccountName
 	databases := matchBindings(filteredBindings, pod.Spec.ServiceAccountName)
 	if len(databases) == 0 {
 		log.Infof("Skipping mutation for %s/%s due to policy check", req.Namespace, ownerName)
@@ -166,6 +172,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	}
 }
 
+// For all the bindings, we need to find the ones in the target namespace
 func filterBindings(bindings []v1alpha1.DatabaseCredentialBinding, namespace string) []v1alpha1.DatabaseCredentialBinding {
 	filteredBindings := []v1alpha1.DatabaseCredentialBinding{}
 	for _, binding := range bindings {
@@ -176,6 +183,12 @@ func filterBindings(bindings []v1alpha1.DatabaseCredentialBinding, namespace str
 	return filteredBindings
 }
 
+/*
+	    For all the bindings in the namespace, check which one has a ServiceeAccount that matches the pod's ServiceAccount
+		  - We could have multiple database specifications to be attached to a single pod.
+		  - This means that we could also have different VaultContainer specs for each DatabaseCredentialBinding.
+		  - As a consequence, to keep things consistent and easy to follow, we are appending into the `database` slice.
+*/
 func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount string) []database {
 	matchedBindings := []database{}
 	for _, binding := range bindings {
@@ -184,7 +197,15 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 			if output == "" {
 				output = "/etc/database"
 			}
-			matchedBindings = appendIfMissing(matchedBindings, database{role: binding.Spec.Role, database: binding.Spec.Database, outputPath: output, outputFile: binding.Spec.OutputFile})
+			log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
+
+			matchedBindings = appendIfMissing(matchedBindings, database{
+				role:           binding.Spec.Role,
+				database:       binding.Spec.Database,
+				outputPath:     output,
+				outputFile:     binding.Spec.OutputFile,
+				vaultContainer: binding.Spec.Container,
+			})
 		}
 	}
 	return matchedBindings
@@ -192,7 +213,11 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 
 func appendIfMissing(slice []database, d database) []database {
 	for _, ele := range slice {
-		if ele == d {
+		// No need to compare Container fields.
+		if ele.role == d.role &&
+			ele.database == d.database &&
+			ele.outputPath == d.outputPath &&
+			ele.outputFile == d.outputFile {
 			return slice
 		}
 	}
