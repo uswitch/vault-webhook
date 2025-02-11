@@ -6,12 +6,19 @@ spec:
   group: vaultwebhook.uswitch.com
   versions:
     - name: v1alpha1
+      # Each version can be enabled/disabled by Served flag.
       served: true
+      # One and only one version must be marked as the storage version.
       storage: true
       schema:
         openAPIV3Schema:
+          type: object
+          description: |-
+            A MutatingAdmissionController that will add the vault-creds container to your pod 
+            for you when your pod is created (assuming that vault webhook is enabled on your namespace
           properties:
             spec:
+              type: object
               properties:
                 database:
                   type: string
@@ -20,7 +27,29 @@ spec:
                 outputPath:
                   type: string
                 outputFile:
+                  type: string              
+                serviceAccount:
                   type: string
+                container:
+                  description: Specification of the container that will be created as part of this binding.
+                  type: object
+                  properties:
+                    lifecycle:
+                      description: Specification of the lifecycle hooks of the container. https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+                      type: object
+                      properties:
+                        preStop:
+                          description: This hook is called immediately before a container is terminated due to an API request or management event such as a liveness/startup probe failure, preemption, resource contention and others
+                          type: object
+                          properties:
+                            exec:
+                              description: Executes a specific command, inside the cgroups and namespaces of the Container.
+                              type: object
+                              properties:
+                                command:
+                                  type: array
+                                  items:
+                                    type: string
   names:
     kind: DatabaseCredentialBinding
     plural: databasecredentialbindings
