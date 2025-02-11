@@ -39,22 +39,14 @@ type Container struct {
 }
 
 /*
-Check if Container.Lifecycle.PreStop is valid.
-This is to avoid mishandling incomplete inputs like the below:
-
 https://pkg.go.dev/k8s.io/api/core/v1#LifecycleHandler
-{
+Check if Container.Lifecycle.PreStop is valid. This is to avoid mishandling incomplete inputs like the below:
 
-	"Lifecycle": {
-		"PostStart": null,
-		"PreStop": {
-		"Exec": null,  # <----- Missing Command!!
-		"HTTPGet": null,
-		"TCPSocket": null
-		}
-	}
-
-}
+	{	"Lifecycle": {
+			"PostStart": null,
+			"PreStop": {
+			  "Exec": null,  # <----- Missing Command!!
+			  "HTTPGet": null,"TCPSocket": null}}}
 */
 func (c Container) HasValidPreStop() bool {
 	return c.Lifecycle.PreStop != nil &&
