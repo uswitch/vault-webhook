@@ -43,7 +43,6 @@ type database struct {
 	outputPath     string
 	outputFile     string
 	vaultContainer v1alpha1.Container
-	// initVaultContainer v1alpha1.Container // TODO: Fix support for initcontainer's Lifecycle hooks  ( Go dep to be updated )
 }
 
 func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
@@ -199,7 +198,6 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 				output = "/etc/database"
 			}
 			log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
-			//log.Infof("[matchBindings] Printing content of InitContainer: %+v", binding.Spec.InitContainer)
 
 			matchedBindings = appendIfMissing(matchedBindings, database{
 				role:           binding.Spec.Role,
@@ -207,7 +205,6 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 				outputPath:     output,
 				outputFile:     binding.Spec.OutputFile,
 				vaultContainer: binding.Spec.Container,
-				//initVaultContainer: binding.Spec.InitContainer, // TODO: Fix support for initcontainer's Lifecycle hooks  ( Go dep to be updated )
 			})
 		}
 	}
@@ -216,7 +213,7 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 
 func appendIfMissing(slice []database, d database) []database {
 	for _, ele := range slice {
-		// No need to compare the Container and InitContainer fields.
+		// No need to compare Container fields.
 		if ele.role == d.role &&
 			ele.database == d.database &&
 			ele.outputPath == d.outputPath &&

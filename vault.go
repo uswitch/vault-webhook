@@ -26,7 +26,6 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 	for _, databaseInfo := range databases {
 
 		vaultContainerSpec := databaseInfo.vaultContainer
-		//initVaultContainerSpec := databaseInfo.initVaultContainer // TODO: Fix support for initcontainer's Lifecycle hooks  ( Go dep to be updated )
 
 		database := databaseInfo.database
 		role := databaseInfo.role
@@ -109,7 +108,6 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 		initContainer := vaultContainer
 
 		// Configure Lifecycle Hooks if spec exists
-		// initContainer = addLifecycleHook(initContainer, initVaultContainerSpec) // TODO: Fix support for initcontainer's Lifecycle hooks  ( Go dep to be updated )
 		vaultContainer = addLifecycleHook(vaultContainer, vaultContainerSpec)
 
 		jobLikeOwnerReferencesKinds := map[string]bool{"Job": true, "Workflow": true}
@@ -220,12 +218,5 @@ func addLifecycleHook(container corev1.Container, containerSpec v1alpha1.Contain
 		}
 
 	}
-	// TODO: Fix support for initcontainer's Lifecycle hooks ( Go dep to be updated )
-	// Init containers must have RestartPolicy=Always to be able to support Lifecycle hooks
-	// if isInit {
-	// 	restartPolicy := corev1.ContainerRestartPolicyAlways
-	// 	container.RestartPolicy = &restartPolicy
-	// }
-	//}
 	return container
 }
