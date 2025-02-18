@@ -23,12 +23,6 @@ func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 	binder := &bindingAggregator{}
 	watcher := cache.NewListWatchFromClient(client.VaultwebhookV1alpha1().RESTClient(), "databasecredentialbindings", "", fields.Everything())
 
-	//binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
-
-	/*
-		- https://pkg.go.dev/k8s.io/client-go/tools/cache#InformerOptions
-		- Deprecated resource reference: https://pkg.go.dev/k8s.io/client-go/tools/cache#NewIndexerInformer
-	*/
 	informerOptions := cache.InformerOptions{
 		ListerWatcher: watcher,
 		ObjectType:    &v1alpha1.DatabaseCredentialBinding{},
