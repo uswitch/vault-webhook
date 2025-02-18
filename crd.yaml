@@ -59,6 +59,7 @@ spec:
                               properties:
                                 seconds:
                                   type: integer
+                                  minimum: 1
   names:
     kind: DatabaseCredentialBinding
     plural: databasecredentialbindings
