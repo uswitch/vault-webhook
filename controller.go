@@ -22,7 +22,21 @@ type bindingAggregator struct {
 func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 	binder := &bindingAggregator{}
 	watcher := cache.NewListWatchFromClient(client.VaultwebhookV1alpha1().RESTClient(), "databasecredentialbindings", "", fields.Everything())
-	binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
+
+	//binder.store, binder.controller = cache.NewIndexerInformer(watcher, &v1alpha1.DatabaseCredentialBinding{}, time.Minute, binder, cache.Indexers{})
+
+	/*
+		- https://pkg.go.dev/k8s.io/client-go/tools/cache#InformerOptions
+		- Deprecated resource reference: https://pkg.go.dev/k8s.io/client-go/tools/cache#NewIndexerInformer
+	*/
+	informerOptions := cache.InformerOptions{
+		ListerWatcher: watcher,
+		ObjectType:    &v1alpha1.DatabaseCredentialBinding{},
+		Handler:       binder,
+		ResyncPeriod:  time.Minute,
+		Indexers:      cache.Indexers{},
+	}
+	binder.store, binder.controller = cache.NewInformerWithOptions(informerOptions)
 	cacheSize := prometheus.NewCounterFunc(
 		prometheus.CounterOpts{
 			Name: "database_credential_binding_cache_size",
@@ -34,7 +48,8 @@ func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 	return binder
 }
 
-func (b *bindingAggregator) OnAdd(obj interface{}) {
+// https://pkg.go.dev/k8s.io/client-go/tools/cache#ResourceEventHandler
+func (b *bindingAggregator) OnAdd(obj interface{}, isInInitialList bool) {
 	log.Debugf("adding %+v", obj)
 }
 
