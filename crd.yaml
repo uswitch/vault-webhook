@@ -43,11 +43,7 @@ spec:
                           type: object
                           oneOf:
                           - required: ["exec"]
-                            not:
-                              required: ["sleep"]
                           - required: ["sleep"]
-                            not:
-                              required: ["exec"]
                           properties:
                             exec:
                               description: Executes a specific command, inside the cgroups and namespaces of the Container.
