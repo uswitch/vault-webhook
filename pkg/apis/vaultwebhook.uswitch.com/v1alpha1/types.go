@@ -55,7 +55,7 @@ func (c Container) HasValidPreStop() bool {
 			return true
 
 			// is Sleep set correctly?
-		} else if c.Lifecycle.PreStop.Sleep != nil && (c.Lifecycle.PreStop.Sleep.Seconds > 0) { // We do not like negative values here
+		} else if c.Lifecycle.PreStop.Sleep != nil && c.Lifecycle.PreStop.Sleep.Seconds > 0 { // We do not like negative values here
 			return true
 
 			// TODO: Handle HTTPGet and TCPSocket usecases

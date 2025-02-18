@@ -196,7 +196,7 @@ func TestAddLifecyclePreStopHook(t *testing.T) {
 		answer       bool
 	}{
 		{
-			scenario: "Test passing a complete lifecyle config",
+			scenario: "Test passing a complete lifecyle config - Exec Command",
 			lifecycleObj: v1alpha1.Container{
 				Lifecycle: v1.Lifecycle{
 					PreStop: &v1.LifecycleHandler{
@@ -230,6 +230,32 @@ func TestAddLifecyclePreStopHook(t *testing.T) {
 			},
 			answer: false,
 		},
+		{
+			scenario: "Test passing a complete lifecyle config - Sleep",
+			lifecycleObj: v1alpha1.Container{
+				Lifecycle: v1.Lifecycle{
+					PreStop: &v1.LifecycleHandler{
+						Sleep: &v1.SleepAction{
+							Seconds: 10,
+						},
+					},
+				},
+			},
+			answer: true,
+		},
+		{
+			scenario: "Test passing an incorrect lifecyle config - Sleep",
+			lifecycleObj: v1alpha1.Container{
+				Lifecycle: v1.Lifecycle{
+					PreStop: &v1.LifecycleHandler{
+						Sleep: &v1.SleepAction{
+							Seconds: -10,
+						},
+					},
+				},
+			},
+			answer: false,
+		},
 	}
 
 	// Run tests
@@ -241,7 +267,16 @@ func TestAddLifecyclePreStopHook(t *testing.T) {
 			ans := addLifecycleHook(vaultContainer, tt.lifecycleObj)
 
 			//log.Printf("%+v", ans)
-			isValid := ans.Lifecycle != nil && ans.Lifecycle.PreStop != nil && ans.Lifecycle.PreStop.Exec != nil && len(ans.Lifecycle.PreStop.Exec.Command) > 0
+
+			// Is our function returning a container object with valid Lifecycle config?
+			isValid := bool(false)
+			if ans.Lifecycle != nil && ans.Lifecycle.PreStop != nil {
+				if ans.Lifecycle.PreStop.Exec != nil && len(ans.Lifecycle.PreStop.Exec.Command) > 0 { // Check preStop Exec format
+					isValid = true
+				} else if ans.Lifecycle.PreStop.Sleep != nil && ans.Lifecycle.PreStop.Sleep.Seconds > 0 { // Check preStop Sleep format
+					isValid = true
+				}
+			}
 
 			if isValid != tt.answer {
 				t.Errorf("got %v, want %v", isValid, tt.answer)
