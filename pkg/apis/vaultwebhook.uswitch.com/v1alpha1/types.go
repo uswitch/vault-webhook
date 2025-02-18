@@ -45,10 +45,24 @@ Check if Container.Lifecycle.PreStop is valid. This is to avoid mishandling inco
 			"PostStart": null,
 			"PreStop": {
 			  "Exec": null,  # <----- Missing Command!!
-			  "HTTPGet": null,"TCPSocket": null}}}
+			  "HTTPGet": null,"TCPSocket": null, "Sleep": null}}}
 */
 func (c Container) HasValidPreStop() bool {
-	return c.Lifecycle.PreStop != nil &&
-		c.Lifecycle.PreStop.Exec != nil &&
-		len(c.Lifecycle.PreStop.Exec.Command) > 0
+
+	if c.Lifecycle.PreStop != nil {
+		// is Exec set correctly?
+		if c.Lifecycle.PreStop.Exec != nil && len(c.Lifecycle.PreStop.Exec.Command) > 0 {
+			return true
+
+			// is Sleep set correctly?
+		} else if c.Lifecycle.PreStop.Sleep != nil && (c.Lifecycle.PreStop.Sleep.Seconds > 0) { // We do not like negative values here
+			return true
+
+			// TODO: Handle HTTPGet and TCPSocket usecases
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
 }
