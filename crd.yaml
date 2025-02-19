@@ -51,6 +51,7 @@ spec:
                               properties:
                                 command:
                                   type: array
+                                  minItems: 1
                                   items:
                                     type: string
                             sleep:
