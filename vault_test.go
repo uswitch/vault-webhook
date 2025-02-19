@@ -269,7 +269,7 @@ func TestAddLifecyclePreStopHook(t *testing.T) {
 			//log.Printf("%+v", ans)
 
 			// Is our function returning a container object with valid Lifecycle config?
-			isValid := bool(false)
+			isValid := false
 			if ans.Lifecycle != nil && ans.Lifecycle.PreStop != nil {
 				if ans.Lifecycle.PreStop.Exec != nil && len(ans.Lifecycle.PreStop.Exec.Command) > 0 { // Check preStop Exec format
 					isValid = true
