@@ -41,6 +41,9 @@ spec:
                         preStop:
                           description: This hook is called immediately before a container is terminated due to an API request or management event such as a liveness/startup probe failure, preemption, resource contention and others
                           type: object
+                          oneOf:
+                          - required: ["exec"]
+                          - required: ["sleep"]
                           properties:
                             exec:
                               description: Executes a specific command, inside the cgroups and namespaces of the Container.
@@ -48,8 +51,16 @@ spec:
                               properties:
                                 command:
                                   type: array
+                                  minItems: 1
                                   items:
                                     type: string
+                            sleep:
+                              description: Pauses the container for a specified duration..
+                              type: object
+                              properties:
+                                seconds:
+                                  type: integer
+                                  minimum: 1
   names:
     kind: DatabaseCredentialBinding
     plural: databasecredentialbindings
