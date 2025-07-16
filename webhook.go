@@ -120,6 +120,14 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		ownerKind = pod.ObjectMeta.OwnerReferences[0].Kind
 		ownerName = pod.ObjectMeta.OwnerReferences[0].Name
 	}
+
+	if pod.ObjectMeta.Annotations["vault.hashicorp.com/agent-inject"] == "true" {
+		log.Infof("Skipping mutation for %s/%s, vault agent-inject annotation found", req.Namespace, ownerName)
+		return &v1beta1.AdmissionResponse{
+			Allowed: true,
+		}
+	}
+
 	log.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
 		ownerKind, req.Namespace, ownerName, req.UID, req.Operation, req.UserInfo)
 
