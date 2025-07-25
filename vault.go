@@ -55,7 +55,7 @@ func addVault(pod *corev1.Pod, namespace string, databases []database) (patch []
 
 		vaultContainer := corev1.Container{
 			Image:           sidecarImage,
-			ImagePullPolicy: "Always",
+			ImagePullPolicy: "IfNotPresent",
 			Resources: corev1.ResourceRequirements{
 				Requests: requests,
 				Limits:   limits,
