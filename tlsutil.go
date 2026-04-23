@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"sync"
 
-	"gopkg.in/fsnotify.v1"
+	"github.com/fsnotify/fsnotify"
 )
 
 // KeypairReloader structs holds cert path and certs
