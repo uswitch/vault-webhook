@@ -1,8 +1,6 @@
 module github.com/uswitch/vault-webhook
 
-go 1.23.0
-
-toolchain go1.23.6
+go 1.26.2
 
 require (
 	github.com/prometheus/client_golang v1.20.5
