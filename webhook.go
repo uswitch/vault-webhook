@@ -7,7 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
+	"log/slog"
+
 	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -53,7 +54,7 @@ func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if len(body) == 0 {
-		log.Error("empty body")
+		slog.Error("empty body")
 		http.Error(w, "empty body", http.StatusBadRequest)
 		return
 	}
@@ -61,7 +62,7 @@ func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
 	// verify the content type is accurate
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/json" {
-		log.Errorf("Content-Type=%s, expect application/json", contentType)
+		slog.Error("unexpected Content-Type", "content_type", contentType)
 		http.Error(w, "invalid Content-Type, expect `application/json`", http.StatusUnsupportedMediaType)
 		return
 	}
@@ -69,7 +70,7 @@ func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
 	var admissionResponse *v1beta1.AdmissionResponse
 	ar := v1beta1.AdmissionReview{}
 	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
-		log.Errorf("Can't decode body: %v", err)
+		slog.Error("can't decode body", "error", err)
 		admissionResponse = &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
 				Message: err.Error(),
@@ -89,12 +90,12 @@ func (srv webHookServer) serve(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := json.Marshal(admissionReview)
 	if err != nil {
-		log.Errorf("Can't encode response: %v", err)
+		slog.Error("can't encode response", "error", err)
 		http.Error(w, fmt.Sprintf("could not encode response: %v", err), http.StatusInternalServerError)
 	}
-	log.Infof("Ready to write reponse ...")
+	slog.Info("ready to write response")
 	if _, err := w.Write(resp); err != nil {
-		log.Errorf("Can't write response: %v", err)
+		slog.Error("can't write response", "error", err)
 		http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
 	}
 
@@ -106,7 +107,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 
 	var pod corev1.Pod
 	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
-		log.Errorf("Could not unmarshal raw object: %v", err)
+		slog.Error("could not unmarshal raw object", "error", err)
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
 				Message: err.Error(),
@@ -122,18 +123,17 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	}
 
 	if pod.ObjectMeta.Annotations["vault.hashicorp.com/agent-inject"] == "true" {
-		log.Infof("Skipping mutation for %s/%s, vault agent-inject annotation found", req.Namespace, ownerName)
+		slog.Info("skipping mutation, vault agent-inject annotation found", "namespace", req.Namespace, "owner", ownerName)
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
 		}
 	}
 
-	log.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v UID=%v patchOperation=%v UserInfo=%v",
-		ownerKind, req.Namespace, ownerName, req.UID, req.Operation, req.UserInfo)
+	slog.Info("AdmissionReview", "kind", ownerKind, "namespace", req.Namespace, "name", ownerName, "uid", req.UID, "operation", req.Operation, "userInfo", req.UserInfo)
 
 	// A list of ALL the bindings.
 	binds, err := srv.bindings.List()
-	log.Infof("[mutate] List of all bindings: %+v", binds)
+	slog.Info("list of all bindings", "bindings", binds)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
@@ -145,7 +145,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	// Filter out the bindings that are not in the target namespace
 	filteredBindings := filterBindings(binds, req.Namespace)
 	if len(filteredBindings) == 0 {
-		log.Infof("Skipping mutation for %s/%s, no database credential bindings in namespace", req.Namespace, ownerName)
+		slog.Info("skipping mutation, no database credential bindings in namespace", "namespace", req.Namespace, "owner", ownerName)
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
 		}
@@ -154,7 +154,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	// Identify bindings with ServiceAccount field matching the pod's ServiceAccountName
 	databases := matchBindings(filteredBindings, pod.Spec.ServiceAccountName)
 	if len(databases) == 0 {
-		log.Infof("Skipping mutation for %s/%s due to policy check", req.Namespace, ownerName)
+		slog.Info("skipping mutation due to policy check", "namespace", req.Namespace, "owner", ownerName)
 		return &v1beta1.AdmissionResponse{
 			Allowed: true,
 		}
@@ -169,7 +169,7 @@ func (srv webHookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionR
 		}
 	}
 
-	log.Infof("AdmissionResponse: patch=%v\n", string(patchBytes))
+	slog.Info("AdmissionResponse", "patch", string(patchBytes))
 	return &v1beta1.AdmissionResponse{
 		Allowed: true,
 		Patch:   patchBytes,
@@ -205,7 +205,7 @@ func matchBindings(bindings []v1alpha1.DatabaseCredentialBinding, serviceAccount
 			if output == "" {
 				output = "/etc/database"
 			}
-			log.Infof("[matchBindings] Printing content of Container: %+v", binding.Spec.Container)
+			slog.Info("matchBindings container", "container", binding.Spec.Container)
 
 			matchedBindings = appendIfMissing(matchedBindings, database{
 				role:           binding.Spec.Role,

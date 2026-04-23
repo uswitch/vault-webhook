@@ -8,8 +8,9 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/tools/cache"
 
+	"log/slog"
+
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
 	"github.com/uswitch/vault-webhook/pkg/apis/vaultwebhook.uswitch.com/v1alpha1"
 	webhookclient "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
 )
@@ -44,21 +45,21 @@ func NewListWatch(client *webhookclient.Clientset) *bindingAggregator {
 
 // https://pkg.go.dev/k8s.io/client-go/tools/cache#ResourceEventHandler
 func (b *bindingAggregator) OnAdd(obj interface{}, isInInitialList bool) {
-	log.Debugf("adding %+v", obj)
+	slog.Debug("adding", "obj", obj)
 }
 
 func (b *bindingAggregator) OnDelete(obj interface{}) {
-	log.Debugf("deleting %+v", obj)
+	slog.Debug("deleting", "obj", obj)
 }
 
 func (b *bindingAggregator) OnUpdate(old, new interface{}) {
-	log.Debugf("updating %+v", new)
+	slog.Debug("updating", "obj", new)
 }
 
 func (b *bindingAggregator) Run(ctx context.Context) error {
 	go b.controller.Run(ctx.Done())
 	cache.WaitForCacheSync(ctx.Done(), b.controller.HasSynced)
-	log.Debugf("cache controller synced")
+	slog.Debug("cache controller synced")
 
 	return nil
 }

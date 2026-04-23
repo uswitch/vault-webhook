@@ -2,7 +2,7 @@ package main
 
 import (
 	"crypto/tls"
-	"log"
+	"log/slog"
 	"sync"
 
 	"gopkg.in/fsnotify.v1"
@@ -51,15 +51,15 @@ func NewKeypairReloader(certPath, keyPath string) (*KeypairReloader, error) {
 			case event := <-watcher.Events:
 				// fsnotify.create events will tell us if there are new certs
 				if event.Op&fsnotify.Create == fsnotify.Create {
-					log.Printf("Reloading certs")
+					slog.Info("reloading certs")
 					if err := result.reload(); err != nil {
-						log.Printf("Could not load new certs: %v", err)
+						slog.Error("could not load new certs", "error", err)
 					}
 				}
 
 				// watch for errors
 			case err := <-watcher.Errors:
-				log.Print("error", err)
+				slog.Error("watcher error", "error", err)
 			}
 		}
 	}()
