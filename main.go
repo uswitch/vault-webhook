@@ -3,16 +3,14 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
 
+	"flag"
 	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
-
-	kingpin "github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	webhook "github.com/uswitch/vault-webhook/pkg/client/clientset/versioned"
 	"k8s.io/client-go/kubernetes"
@@ -32,14 +30,25 @@ var (
 
 func main() {
 
-	kingpin.Flag("vault-address", "URL of vault").Required().StringVar(&vaultAddr)
-	kingpin.Flag("vault-ca-path", "Path to the CA cert for vault").StringVar(&vaultCaPath)
-	kingpin.Flag("login-path", "Kubernetes auth login path for vault").Required().StringVar(&loginPath)
-	kingpin.Flag("sidecar-image", "Vault-creds sidecar image to use").Required().StringVar(&sidecarImage)
-	kingpin.Flag("gateway-address", "URL of Push Gateway").StringVar(&gatewayAddr)
-	kingpin.Flag("secret-path-format", "The format for the path used for reading database credentials, where the first %s is the database name and the second %s is the role").Default("%s/creds/%s").StringVar(&secretPathFormat)
-	kingpin.Flag("server-address", "The address the webhook server will listen on.").Default(":8443").StringVar(&serverAddress)
-	kingpin.Parse()
+	flag.StringVar(&vaultAddr, "vault-address", "", "URL of vault (required)")
+	flag.StringVar(&vaultCaPath, "vault-ca-path", "", "Path to the CA cert for vault")
+	flag.StringVar(&loginPath, "login-path", "", "Kubernetes auth login path for vault (required)")
+	flag.StringVar(&sidecarImage, "sidecar-image", "", "Vault-creds sidecar image to use (required)")
+	flag.StringVar(&gatewayAddr, "gateway-address", "", "URL of Push Gateway")
+	flag.StringVar(&secretPathFormat, "secret-path-format", "%s/creds/%s", "The format for the path used for reading database credentials, where the first %s is the database name and the second %s is the role")
+	flag.StringVar(&serverAddress, "server-address", ":8443", "The address the webhook server will listen on.")
+	flag.Parse()
+
+	for _, required := range []struct{ name, val string }{
+		{"vault-address", vaultAddr},
+		{"login-path", loginPath},
+		{"sidecar-image", sidecarImage},
+	} {
+		if required.val == "" {
+			slog.Error("flag is required", "flag", required.name)
+			os.Exit(1)
+		}
+	}
 
 	ctx := context.Background()
 
@@ -97,7 +106,7 @@ func main() {
 	healthMux.HandleFunc("/healthz", whsvr.checkHealth)
 
 	healthServer := &http.Server{
-		Addr:    fmt.Sprintf(":8080"),
+		Addr:    ":8080",
 		Handler: healthMux,
 	}
 
